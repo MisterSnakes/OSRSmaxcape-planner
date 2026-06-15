@@ -130,10 +130,10 @@ function cfgInit(){
   if(!c.xp)c.xp=Object.assign({},DEFAULT_XP);
   if(!c.rate)c.rate={};if(!c.method)c.method={};
   SCHED.forEach(k=>{if(c.rate[k]==null)c.rate[k]=METHODS[k][0][1];if(c.method[k]==null){const m=METHODS[k].find(x=>x[1]===num(c.rate[k]));c.method[k]=m?m[0]:"Custom";}});
-  if(c.rsn==null)c.rsn="Fanktastc";
+  if(c.rsn==null)c.rsn="";
   if(!c.mode)c.mode="hours";
   if(c.hpw==null)c.hpw=16;
-  if(!c.date)c.date="2027-06-02";
+  if(!c.date){const _d=new Date();_d.setHours(0,0,0,0);_d.setFullYear(_d.getFullYear()+1);c.date=isoDate(_d);}
 }
 
 /* ---------- generation ---------- */

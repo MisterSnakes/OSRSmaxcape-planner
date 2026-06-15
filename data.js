@@ -52,7 +52,7 @@ const METHODS={
  hunter:[["Black chinchompas",260000],["Red chinchompas",200000],["Maniacal monkeys",140000],["Birdhouses (passive)",100000]],
  sailing:[["Barracuda Trials",160000],["Sea Charting / courier",110000],["Shipwreck Salvaging (AFK)",80000]]
 };
-const DEFAULT_XP={attack:6066398,strength:12028327,defence:5571837,ranged:12407846,magic:12396214,hitpoints:13343304,prayer:6038314,runecraft:7169367,crafting:13891323,mining:13043891,smithing:6700973,fishing:10559752,cooking:13617663,firemaking:6529589,woodcutting:10168532,agility:7535302,herblore:6049225,thieving:6220827,fletching:13061293,slayer:8311936,farming:20447431,construction:7128626,hunter:13267486,sailing:214592};
+const DEFAULT_XP={attack:0,strength:0,defence:0,ranged:0,magic:0,hitpoints:1154,prayer:0,runecraft:0,crafting:0,mining:0,smithing:0,fishing:0,cooking:0,firemaking:0,woodcutting:0,agility:0,herblore:0,thieving:0,fletching:0,slayer:0,farming:0,construction:0,hunter:0,sailing:0};
 const IMG={};ORDER.forEach(k=>IMG[k]="https://oldschool.runescape.wiki/images/"+SKILLS[k].name+"_icon.png");
 
 const LOG={
