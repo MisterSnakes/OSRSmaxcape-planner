@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Max Cape Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="herotop">
+      <div class="eyebrow">&#9876;&#65039; Old School RuneScape</div>
+      <a class="supportlink" href="https://ko-fi.com/fanktastc" target="_blank" rel="noopener">&#9749; Support this tool</a>
+    </div>
+    <h1 class="title" id="heroTitle">Max Cape <em>Planner</em></h1>
+    <p class="sub" id="heroSub">Enter your stats below and generate a complete week-by-week plan.</p>
+    <div class="herometa hidden" id="heroMeta">
+      <div class="bignum"><span class="n" id="heroRem">&#8211;</span><span class="l">XP still to go</span></div>
+      <div class="bignum"><span class="n" id="heroDone">&#8211;</span><span class="l">Skills maxed</span></div>
+      <div class="xpbar"><div class="track"><div class="fill" id="heroFill" style="width:0%"></div></div><div class="cap"><span id="heroPct">0%</span><span id="heroHours"></span></div></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="sechead"><h2>Setup</h2><span class="tag">your RSN, current XP, and a goal</span></div>
+    <div class="setup" id="setup"></div>
+  </section>
+
+  <div id="trackerWrap" class="hidden">
+    <section id="dataSec">
+      <div class="databar">
+        <span class="datanote">&#128190; Saved automatically on this device. Back up to keep or move it.</span>
+        <div class="databtns">
+          <button id="export">&#11015;&#65039; Export</button>
+          <button id="import">&#11014;&#65039; Import</button>
+          <button id="reset">Reset all</button>
+        </div>
+      </div>
+      <input id="importFile" type="file" accept="application/json,.json" style="display:none">
+    </section>
+    <div class="tabs" id="tabs">
+      <button class="tab on" data-tab="overview">Overview</button>
+      <button class="tab" data-tab="weeks">Weekly schedule</button>
+      <button class="tab" data-tab="clog">Collection log</button>
+      <button class="tab" data-tab="pvm">PvM</button>
+    </div>
+    <div class="tabpanel" data-panel="overview">
+    <section><div class="thisweek" id="thisweek"></div></section>
+    <section>
+      <div class="sechead"><h2>Per-skill plan</h2><span class="tag">edit current XP any time — goals recalc</span></div>
+      <div class="grid" id="skillgrid"></div>
+    </section>
+    </div>
+    <div class="tabpanel hidden" data-panel="weeks">
+    <section>
+      <div class="sechead"><h2>Weekly XP goals</h2><span class="tag">tap a week to mark it done</span></div>
+      <p class="hint">Each week shows the XP that skill needs to stay on track for 99 &mdash; remaining XP split over weeks not yet done. <b>Tap a week to mark done</b>; <b>edit current XP</b> above whenever it changes. Per-day / per-hour use your chosen hours/week.</p>
+      <div id="timeline"></div>
+    </section>
+    </div>
+    <div class="tabpanel hidden" data-panel="clog">
+    <section id="clogSec">
+      <div class="sechead clk" id="clogHead"><h2>Collection log targets</h2><span class="tag" id="logcount">0 logged</span><span class="caret">&#9662;</span></div>
+      <div id="clogBody">
+      <p class="hint" id="clogHint">Tap an item to mark it logged. <span class="priority">Gold = do first</span>, <span style="color:#4fb6e8">RNG = luck-gated</span>.</p>
+      <div class="clog" id="clog"></div>
+      </div>
+    </section>
+    <section id="grindSec">
+      <div class="sechead"><h2>Collection log grinds</h2><span class="tag">via TempleOSRS</span></div>
+      <div id="grindBody"></div>
+    </section>
+    </div>
+    <div class="tabpanel hidden" data-panel="pvm">
+    <section id="pvmSec"></section>
+    </div>
+  </div>
+</div>
+
+<footer class="sitefoot">
+  <p>Created using intellectual property belonging to Jagex Limited under the terms of Jagex's Fan Content Policy. This content is not endorsed by or affiliated with Jagex.</p>
+  <p>Old School RuneScape is a trademark of Jagex Ltd. &middot; <a id="donate" href="https://ko-fi.com/fanktastc" target="_blank" rel="noopener">&#9749; Support this tool</a></p>
+</footer>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

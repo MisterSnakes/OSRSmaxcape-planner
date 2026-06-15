@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Max Cape Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#13110d;--panel:#211c14;--panel2:#29231a;--edge:#46381f;--edge-bright:#67501f;--gold:#e6bb46;--gold-bright:#ffd874;--cream:#efe4ce;--muted:#9d8e70;--green:#6bd06b;--red:#e06b5a;--radius:11px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(1000px 560px at 72% -12%, rgba(230,187,70,.09), transparent 60%),var(--bg);color:var(--cream);font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 16px 80px}
+  .wrap{max-width:1180px;margin:0 auto}
+  .ico-img{object-fit:contain;vertical-align:middle}
+  .ico{display:inline-flex}
+
+  header.hero{padding:40px 0 22px;border-bottom:1px solid var(--edge);margin-bottom:26px}
+  .eyebrow{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:11px;color:var(--gold);margin-bottom:12px}
+  h1.title{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(30px,6vw,54px);line-height:1;color:var(--cream);text-shadow:0 2px 0 #0a0805}
+  h1.title em{color:var(--gold-bright);font-style:normal}
+  .sub{color:var(--muted);margin-top:10px}.sub b{color:var(--cream);font-weight:600}
+  .herotop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .herotop .eyebrow{margin-bottom:0}
+  .supportlink{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--gold);text-decoration:none;border:1px solid var(--edge-bright);border-radius:999px;padding:5px 13px;background:linear-gradient(180deg,var(--panel2),var(--panel));transition:border-color .15s,color .15s;white-space:nowrap}
+  .supportlink:hover{color:var(--gold-bright);border-color:var(--gold)}
+  .herometa{display:flex;flex-wrap:wrap;gap:20px 36px;margin-top:22px;align-items:flex-end}
+  .bignum{display:flex;flex-direction:column}
+  .bignum .n{font-family:'Cinzel',serif;font-weight:700;font-size:27px;color:var(--gold-bright);font-variant-numeric:tabular-nums}
+  .bignum .l{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+  .xpbar{flex:1 1 260px;min-width:220px}
+  .xpbar .track{height:13px;background:#0e0b07;border:1px solid var(--edge);border-radius:20px;overflow:hidden}
+  .xpbar .fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-bright));border-radius:20px;transition:width .25s}
+  .xpbar .cap{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+
+  section{margin-bottom:34px}
+  .sechead{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+  .sechead h2{font-family:'Cinzel',serif;font-weight:700;font-size:21px;color:var(--cream)}
+  .sechead .tag{font-size:12px;color:var(--muted)}
+
+  /* setup */
+  .setup{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--edge);border-radius:var(--radius);padding:18px}
+  .setup .grp{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:14px 0 10px;border-bottom:1px solid var(--edge);padding-bottom:6px}
+  .setup .grp:first-child{margin-top:0}
+  .frow{display:flex;flex-wrap:wrap;gap:16px 22px;align-items:flex-end;margin-bottom:6px}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  .fld input,.fld select{background:#0e0b07;border:1px solid var(--edge);color:var(--cream);border-radius:7px;padding:9px 11px;font-size:14.5px;font-family:inherit;font-variant-numeric:tabular-nums}
+  .fld input:focus,.fld select:focus{outline:none;border-color:var(--gold)}
+  .modetoggle{display:inline-flex;border:1px solid var(--edge);border-radius:8px;overflow:hidden}
+  .modetoggle button{background:#0e0b07;color:var(--muted);border:none;padding:9px 16px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+  .modetoggle button.on{background:var(--gold);color:#1a160d}
+  .skillsform{display:grid;grid-template-columns:repeat(auto-fill,minmax(216px,1fr));gap:9px}
+  .srow{display:flex;align-items:center;gap:9px;background:#0e0b07;border:1px solid var(--edge);border-left:3px solid var(--c);border-radius:8px;padding:7px 9px}
+  .srow .ico{color:var(--c)}
+  .srow .nm{font-size:12.5px;font-weight:600;color:var(--cream);flex:1;min-width:0}
+  .srow .nm small{display:block;color:var(--muted);font-weight:400;font-size:10px}
+  .srow input{width:96px;background:#000;border:1px solid var(--edge);color:var(--cream);border-radius:6px;padding:6px 7px;font-size:13px;font-family:inherit;font-variant-numeric:tabular-nums;text-align:right}
+  .srow input:focus{outline:none;border-color:var(--c)}
+  .srow select.msel{flex:1;min-width:0;background:#000;border:1px solid var(--edge);color:var(--cream);border-radius:6px;padding:6px 7px;font-size:12px;font-family:inherit}
+  .srow select.msel:focus{outline:none;border-color:var(--c)}
+  .srow.maxed{opacity:.5}
+  details.adv{margin-top:14px}
+  details.adv summary{cursor:pointer;color:var(--gold);font-size:13px;font-weight:600;list-style:none}
+  details.adv summary::-webkit-details-marker{display:none}
+  details.adv summary::before{content:"▸ ";color:var(--muted)}
+  details.adv[open] summary::before{content:"▾ "}
+  .genbtn{margin-top:18px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:#1a160d;border:none;font-family:'Cinzel',serif;font-weight:700;font-size:15px;padding:12px 26px;border-radius:9px;cursor:pointer;letter-spacing:.04em}
+  .genbtn:hover{filter:brightness(1.07)}
+  .fetchbtn{background:#0e0b07;border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;font-weight:600;font-size:13.5px;padding:9px 16px;border-radius:7px;cursor:pointer}
+  .fetchbtn:hover{background:var(--gold);color:#1a160d}
+  .fetchbtn:disabled{opacity:.6;cursor:default}
+  .warn{background:#2a1d12;border:1px solid #7a5a28;border-left:4px solid var(--gold);border-radius:8px;padding:11px 14px;margin-top:14px;font-size:13px;color:var(--gold-bright)}
+  .note{font-size:12.5px;color:var(--muted);margin-top:10px;max-width:90ch}
+
+  .thisweek{border-radius:var(--radius);padding:16px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 24px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--c);border-left:5px solid var(--c)}
+  .thisweek .ico{color:var(--c)}
+  .thisweek .lbl{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+  .thisweek .sk{font-family:'Cinzel',serif;font-weight:700;font-size:24px;color:var(--c)}
+  .thisweek .goal{font-size:24px;font-weight:800;color:var(--gold-bright);font-variant-numeric:tabular-nums}
+  .thisweek .meta{font-size:12.5px;color:var(--muted);flex-basis:100%;margin-top:2px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:12px}
+  .skill{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--edge);border-left:4px solid var(--c);border-radius:var(--radius);padding:12px 14px}
+  .skill .row1{display:flex;align-items:center;gap:9px}
+  .skill .row1 .ico{color:var(--c)}
+  .skill .sname{font-weight:700;font-size:15px;color:var(--c)}
+  .skill .wk{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:auto}
+  .skill .smeth{font-size:11px;color:var(--muted);margin-top:3px}
+  .skill input.cur{width:100%;margin-top:9px;background:#0e0b07;border:1px solid var(--edge);color:var(--cream);border-radius:6px;padding:7px 9px;font-size:14px;font-family:inherit;font-variant-numeric:tabular-nums}
+  .skill input.cur:focus{outline:none;border-color:var(--c)}
+  .skill .nums{display:flex;justify-content:space-between;font-size:12px;margin-top:9px;font-variant-numeric:tabular-nums}
+  .skill .nums .b{color:var(--muted)}.skill .nums b{color:var(--gold-bright);font-weight:600}
+  .skill .mini{height:6px;background:#0e0b07;border-radius:10px;overflow:hidden;margin-top:9px;border:1px solid var(--edge)}
+  .skill .mini i{display:block;height:100%;background:var(--c);border-radius:10px;transition:width .25s}
+  .skill.maxed{border-left-color:var(--green)}.skill.maxed .sname{color:var(--green)}
+
+  .phasegroup{margin-bottom:14px}
+  .monthbar{font-family:'Cinzel',serif;font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);padding:8px 0;margin-bottom:4px;border-bottom:1px solid var(--edge)}
+  .weeks{display:grid;grid-template-columns:repeat(auto-fill,minmax(164px,1fr));gap:10px;margin-top:10px}
+  .week{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid var(--c);border-radius:var(--radius);padding:11px 10px 12px;text-align:center;cursor:pointer;position:relative;transition:transform .06s,box-shadow .12s}
+  .week:hover{box-shadow:0 0 0 1px var(--c)}
+  .week:active{transform:scale(.98)}
+  .week .wn{font-size:10px;color:var(--muted);letter-spacing:.04em}
+  .week .ico{color:var(--c);justify-content:center;margin:5px 0 3px}
+  .week .ws{font-weight:700;font-size:14px;color:var(--c)}
+  .week .wgoal{font-size:15px;font-weight:800;color:var(--gold-bright);margin-top:5px;font-variant-numeric:tabular-nums}
+  .week .wsub{font-size:10px;color:var(--muted)}
+  .week .wbreak{font-size:10.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+  .week.now{box-shadow:0 0 0 2px var(--gold) inset}
+  .week.done{filter:saturate(.5);opacity:.6}
+  .week.done::after{content:"\2713";position:absolute;right:9px;top:8px;color:var(--green);font-weight:800;font-size:14px}
+  .week.done .wgoal{color:var(--green);font-size:13px}
+  .week.flex .wgoal{color:#4fa3d8}
+
+  .clog{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+  .clog .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--edge);border-left:4px solid var(--c);border-radius:var(--radius);padding:13px 14px}
+  .clog .card h3{font-size:14px;font-weight:700;color:var(--c);display:flex;align-items:center;gap:7px;margin-bottom:2px}
+  .clog .card h3 .ico{color:var(--c)}
+  .clog .card .cnt{font-size:11px;color:var(--muted);margin-bottom:9px;font-variant-numeric:tabular-nums}
+  .sechead.clk{cursor:pointer;user-select:none}
+  .sechead .caret{margin-left:8px;color:var(--muted);transition:transform .15s;font-size:11px}
+  .sechead.closed .caret{transform:rotate(-90deg)}
+  details.pvmsec{margin-top:18px;border:1px solid var(--edge);border-radius:var(--radius);background:linear-gradient(180deg,var(--panel2),var(--panel))}
+  details.pvmsec>summary{cursor:pointer;user-select:none;list-style:none;padding:13px 15px;font-size:15px;font-weight:700;color:var(--cream);display:flex;align-items:center;gap:9px}
+  details.pvmsec>summary::-webkit-details-marker{display:none}
+  details.pvmsec>summary .tag{margin-left:auto}
+  .pvmbody{padding:0 15px 15px}
+  .pvmbody .stat{display:inline-flex;gap:6px;align-items:baseline;margin-right:18px;font-size:12.5px;color:var(--muted)}
+  .pvmbody .stat b{color:var(--cream);font-size:17px;font-variant-numeric:tabular-nums}
+  .pvm{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;margin-top:4px}
+  .pvm .kc{display:flex;justify-content:space-between;gap:8px;background:var(--panel2);border:1px solid var(--edge);border-radius:8px;padding:7px 10px;font-size:12.5px}
+  .pvm .kc span{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pvm .kc b{color:var(--cream);font-variant-numeric:tabular-nums}
+  .grnav{display:flex;gap:8px;margin:4px 0 12px}
+  .gsort{background:var(--panel2);border:1px solid var(--edge);color:var(--muted);border-radius:7px;padding:6px 11px;font-size:12px;cursor:pointer;font-family:inherit}
+  .gsort.on{color:var(--cream);border-color:var(--gold)}
+  .grinds{display:grid;gap:9px}
+  .grind{background:var(--panel2);border:1px solid var(--edge);border-radius:9px;padding:9px 11px}
+  .grind .gh{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+  .grind .gh b{color:var(--cream)}
+  .grind .gh span{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .grind .gbar{height:5px;background:#0006;border-radius:3px;overflow:hidden;margin:6px 0}
+  .grind .gbar i{display:block;height:100%;background:var(--gold)}
+  .grind .gmiss{font-size:11.5px;color:var(--muted);line-height:1.45}
+  .databar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--edge-bright);border-radius:var(--radius);padding:11px 14px}
+  .databar .datanote{font-size:12.5px;color:var(--muted)}
+  .databtns{display:flex;gap:8px;flex-wrap:wrap}
+  .databtns button{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:8px;padding:8px 14px;background:transparent;border:1px solid var(--edge-bright);color:var(--cream)}
+  .databtns button:hover{border-color:var(--gold);color:var(--gold-bright)}
+  .databtns #reset{border-color:#6a3a32;color:var(--red)}
+  .databtns #reset:hover{border-color:var(--red);color:var(--red)}
+  .item{display:flex;gap:9px;padding:5px 0;align-items:flex-start;cursor:pointer;font-size:13px}
+  .item .box{flex:none;width:17px;height:17px;border:1.5px solid var(--edge-bright);border-radius:4px;margin-top:1px;display:grid;place-items:center}
+  .item.on .box{background:var(--c);border-color:var(--c)}
+  .item.on .box::after{content:"\2713";color:#10100c;font-size:12px;font-weight:900;line-height:1}
+  .item .txt{color:var(--cream)}.item.on .txt{color:var(--muted);text-decoration:line-through}
+  .item .rng{font-size:10px;color:#4fb6e8;border:1px solid var(--edge);padding:0 5px;border-radius:10px;margin-left:4px;white-space:nowrap;text-decoration:none!important}
+  .priority{color:var(--gold-bright)!important;font-weight:600}
+
+  .hint{font-size:12px;color:var(--muted);margin:-6px 0 18px;max-width:90ch}.hint b{color:var(--cream)}
+  .reset{margin-top:8px;background:none;border:1px solid var(--edge);color:var(--muted);font-family:inherit;font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer}
+  .reset:hover{border-color:var(--red);color:var(--red)}
+  .hidden{display:none}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 20px;border-bottom:1px solid var(--edge)}
+  .tab{appearance:none;background:transparent;border:1px solid transparent;border-bottom:none;color:var(--muted);font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 16px;cursor:pointer;border-radius:9px 9px 0 0;position:relative;top:1px}
+  .tab:hover{color:var(--cream)}
+  .tab.on{color:var(--gold-bright);background:linear-gradient(180deg,var(--panel2),var(--panel));border-color:var(--edge);border-bottom-color:var(--panel)}
+  .tabpanel{animation:fadein .18s ease}
+  @keyframes fadein{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+  .clog .card .mini{height:6px;background:#0e0b07;border-radius:10px;overflow:hidden;margin:3px 0 2px;border:1px solid var(--edge)}
+  .clog .card .mini i{display:block;height:100%;border-radius:10px;transition:width .25s}
+  .clog .card .item.extra{display:none}
+  .clog .card.expanded .item.extra{display:flex}
+  .moretoggle{font-size:12px;color:var(--gold);cursor:pointer;margin-top:6px;user-select:none;font-weight:600}
+  .moretoggle:hover{color:var(--gold-bright)}
+  .gotlist{margin-top:9px;border-top:1px dashed var(--edge);padding-top:6px}
+  .gotlist>summary{cursor:pointer;font-size:12px;color:var(--green);list-style:none;user-select:none;padding:2px 0}
+  .gotlist>summary::-webkit-details-marker{display:none}
+  .gotlist>summary::marker{content:""}
+  .gotlist .item{cursor:default;padding:3px 0}
+  @media (max-width:560px){
+    body{padding:0 12px 60px}.herometa{gap:16px 24px}
+    .frow{gap:12px 14px}
+    .fld{flex:1 1 140px}
+    .fld input,.fld select{width:100%!important;box-sizing:border-box}
+    .tab{padding:9px 13px;font-size:13px}
+    .clog .card .item,.item{padding:7px 0}
+    .thisweek .sk,.thisweek .goal{font-size:21px}
+    .week{padding:10px 8px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  /* --- site footer (attribution + support link) --- */
+  .sitefoot{max-width:1180px;margin:46px auto 56px;padding:18px 16px 0;border-top:1px solid var(--edge);color:var(--muted);font-size:11.5px;line-height:1.65;text-align:center}
+  .sitefoot p{margin:0 0 6px}
+  .sitefoot a{color:var(--gold);text-decoration:none}
+  .sitefoot a:hover{color:var(--gold-bright)}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="herotop">
+      <div class="eyebrow">&#9876;&#65039; Old School RuneScape</div>
+      <a class="supportlink" href="https://ko-fi.com/fanktastc" target="_blank" rel="noopener">&#9749; Support this tool</a>
+    </div>
+    <h1 class="title" id="heroTitle">Max Cape <em>Planner</em></h1>
+    <p class="sub" id="heroSub">Enter your stats below and generate a complete week-by-week plan.</p>
+    <div class="herometa hidden" id="heroMeta">
+      <div class="bignum"><span class="n" id="heroRem">&#8211;</span><span class="l">XP still to go</span></div>
+      <div class="bignum"><span class="n" id="heroDone">&#8211;</span><span class="l">Skills maxed</span></div>
+      <div class="xpbar"><div class="track"><div class="fill" id="heroFill" style="width:0%"></div></div><div class="cap"><span id="heroPct">0%</span><span id="heroHours"></span></div></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="sechead"><h2>Setup</h2><span class="tag">your RSN, current XP, and a goal</span></div>
+    <div class="setup" id="setup"></div>
+  </section>
+
+  <div id="trackerWrap" class="hidden">
+    <section id="dataSec">
+      <div class="databar">
+        <span class="datanote">&#128190; Saved automatically on this device. Back up to keep or move it.</span>
+        <div class="databtns">
+          <button id="export">&#11015;&#65039; Export</button>
+          <button id="import">&#11014;&#65039; Import</button>
+          <button id="reset">Reset all</button>
+        </div>
+      </div>
+      <input id="importFile" type="file" accept="application/json,.json" style="display:none">
+    </section>
+    <div class="tabs" id="tabs">
+      <button class="tab on" data-tab="overview">Overview</button>
+      <button class="tab" data-tab="weeks">Weekly schedule</button>
+      <button class="tab" data-tab="clog">Collection log</button>
+      <button class="tab" data-tab="pvm">PvM</button>
+    </div>
+    <div class="tabpanel" data-panel="overview">
+    <section><div class="thisweek" id="thisweek"></div></section>
+    <section>
+      <div class="sechead"><h2>Per-skill plan</h2><span class="tag">edit current XP any time — goals recalc</span></div>
+      <div class="grid" id="skillgrid"></div>
+    </section>
+    </div>
+    <div class="tabpanel hidden" data-panel="weeks">
+    <section>
+      <div class="sechead"><h2>Weekly XP goals</h2><span class="tag">tap a week to mark it done</span></div>
+      <p class="hint">Each week shows the XP that skill needs to stay on track for 99 &mdash; remaining XP split over weeks not yet done. <b>Tap a week to mark done</b>; <b>edit current XP</b> above whenever it changes. Per-day / per-hour use your chosen hours/week.</p>
+      <div id="timeline"></div>
+    </section>
+    </div>
+    <div class="tabpanel hidden" data-panel="clog">
+    <section id="clogSec">
+      <div class="sechead clk" id="clogHead"><h2>Collection log targets</h2><span class="tag" id="logcount">0 logged</span><span class="caret">&#9662;</span></div>
+      <div id="clogBody">
+      <p class="hint" id="clogHint">Tap an item to mark it logged. <span class="priority">Gold = do first</span>, <span style="color:#4fb6e8">RNG = luck-gated</span>.</p>
+      <div class="clog" id="clog"></div>
+      </div>
+    </section>
+    <section id="grindSec">
+      <div class="sechead"><h2>Collection log grinds</h2><span class="tag">via TempleOSRS</span></div>
+      <div id="grindBody"></div>
+    </section>
+    </div>
+    <div class="tabpanel hidden" data-panel="pvm">
+    <section id="pvmSec"></section>
+    </div>
+  </div>
+</div>
+
+<footer class="sitefoot">
+  <p>Created using intellectual property belonging to Jagex Limited under the terms of Jagex's Fan Content Policy. This content is not endorsed by or affiliated with Jagex.</p>
+  <p>Old School RuneScape is a trademark of Jagex Ltd. &middot; <a id="donate" href="https://ko-fi.com/fanktastc" target="_blank" rel="noopener">&#9749; Support this tool</a></p>
+</footer>
+<script>
+/* Skill icons from Lucide (lucide.dev), ISC License */
+const ICONS={"attack":"<path d=\"m11 19-6-6\" /> <path d=\"m5 21-2-2\" /> <path d=\"m8 16-4 4\" /> <path d=\"M9.5 17.5 21 6V3h-3L6.5 14.5\" />","strength":"<path d=\"M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z\" /> <path d=\"m2.5 21.5 1.4-1.4\" /> <path d=\"m20.1 3.9 1.4-1.4\" /> <path d=\"M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z\" /> <path d=\"m9.6 14.4 4.8-4.8\" />","defence":"<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" />","ranged":"<circle cx=\"12\" cy=\"12\" r=\"10\" /> <circle cx=\"12\" cy=\"12\" r=\"6\" /> <circle cx=\"12\" cy=\"12\" r=\"2\" />","magic":"<path d=\"m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72\" /> <path d=\"m14 7 3 3\" /> <path d=\"M5 6v4\" /> <path d=\"M19 14v4\" /> <path d=\"M10 2v2\" /> <path d=\"M7 8H3\" /> <path d=\"M21 16h-4\" /> <path d=\"M11 3H9\" />","prayer":"<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />","runecraft":"<path d=\"M10.5 3 8 9l4 13 4-13-2.5-6\" /> <path d=\"M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z\" /> <path d=\"M2 9h20\" />","hitpoints":"<path d=\"M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5\" />","crafting":"<circle cx=\"6\" cy=\"6\" r=\"3\" /> <path d=\"M8.12 8.12 12 12\" /> <path d=\"M20 4 8.12 15.88\" /> <circle cx=\"6\" cy=\"18\" r=\"3\" /> <path d=\"M14.8 14.8 20 20\" />","mining":"<path d=\"m14 13-8.381 8.38a1 1 0 0 1-3.001-3L11 9.999\" /> <path d=\"M15.973 4.027A13 13 0 0 0 5.902 2.373c-1.398.342-1.092 2.158.277 2.601a19.9 19.9 0 0 1 5.822 3.024\" /> <path d=\"M16.001 11.999a19.9 19.9 0 0 1 3.024 5.824c.444 1.369 2.26 1.676 2.603.278A13 13 0 0 0 20 8.069\" /> <path d=\"M18.352 3.352a1.205 1.205 0 0 0-1.704 0l-5.296 5.296a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l5.296-5.296a1.205 1.205 0 0 0 0-1.704z\" />","smithing":"<path d=\"m15 12-9.373 9.373a1 1 0 0 1-3.001-3L12 9\" /> <path d=\"m18 15 4-4\" /> <path d=\"m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172v-.344a2 2 0 0 0-.586-1.414l-1.657-1.657A6 6 0 0 0 12.516 3H9l1.243 1.243A6 6 0 0 1 12 8.485V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5\" />","fishing":"<path d=\"M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z\" /> <path d=\"M18 12v.5\" /> <path d=\"M16 17.93a9.77 9.77 0 0 1 0-11.86\" /> <path d=\"M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33\" /> <path d=\"M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4\" /> <path d=\"m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98\" />","cooking":"<path d=\"M2 12h20\" /> <path d=\"M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8\" /> <path d=\"m4 8 16-4\" /> <path d=\"m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8\" />","firemaking":"<path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\" />","woodcutting":"<path d=\"m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z\" /> <path d=\"M12 22v-3\" />","agility":"<path d=\"M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z\" /> <path d=\"M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z\" /> <path d=\"M16 17h4\" /> <path d=\"M4 13h4\" />","herblore":"<path d=\"M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2\" /> <path d=\"M6.453 15h11.094\" /> <path d=\"M8.5 2h7\" />","thieving":"<path d=\"M18 11c-1.5 0-2.5.5-3 2\" /> <path d=\"M4 6a2 2 0 0 0-2 2v4a5 5 0 0 0 5 5 8 8 0 0 1 5 2 8 8 0 0 1 5-2 5 5 0 0 0 5-5V8a2 2 0 0 0-2-2h-3a8 8 0 0 0-5 2 8 8 0 0 0-5-2z\" /> <path d=\"M6 11c1.5 0 2.5.5 3 2\" />","fletching":"<path d=\"M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z\" /> <path d=\"M16 8 2 22\" /> <path d=\"M17.5 15H9\" />","slayer":"<path d=\"m12.5 17-.5-1-.5 1h1z\" /> <path d=\"M15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20v1a1 1 0 0 0 1 1z\" /> <circle cx=\"15\" cy=\"12\" r=\"1\" /> <circle cx=\"9\" cy=\"12\" r=\"1\" />","farming":"<path d=\"M14 9.536V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3\" /> <path d=\"M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4\" /> <path d=\"M5 21h14\" />","construction":"<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /> <path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />","hunter":"<circle cx=\"11\" cy=\"4\" r=\"2\" /> <circle cx=\"18\" cy=\"8\" r=\"2\" /> <circle cx=\"20\" cy=\"16\" r=\"2\" /> <path d=\"M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z\" />","sailing":"<path d=\"M10 2v15\" /> <path d=\"M7 22a4 4 0 0 1-4-4 1 1 0 0 1 1-1h16a1 1 0 0 1 1 1 4 4 0 0 1-4 4z\" /> <path d=\"M9.159 2.46a1 1 0 0 1 1.521-.193l9.977 8.98A1 1 0 0 1 20 13H4a1 1 0 0 1-.824-1.567z\" />"};
+const XP99=13034431;
+const COMBAT=["attack","strength","defence","ranged","magic","hitpoints"];
+const COMBAT_RATE=300000;
+// name, color, kind, rate(for skill), method
+const SKILLS={
+  attack:{name:"Attack",color:"#d0493c",kind:"combat"},
+  strength:{name:"Strength",color:"#3fa45b",kind:"combat"},
+  defence:{name:"Defence",color:"#5dade2",kind:"combat"},
+  ranged:{name:"Ranged",color:"#3c9b4a",kind:"combat"},
+  magic:{name:"Magic",color:"#6b7fe0",kind:"combat"},
+  hitpoints:{name:"Hitpoints",color:"#e05a5a",kind:"combat"},
+  prayer:{name:"Prayer",color:"#e8cf52",kind:"skill",rate:500000,method:"Gilded / Wrath altar"},
+  runecraft:{name:"Runecraft",color:"#8a7bf0",kind:"skill",rate:45000,method:"Guardians of the Rift"},
+  crafting:{name:"Crafting",color:"#c98a5a",kind:"skill",rate:280000,method:"Gems / d'hide / glass"},
+  mining:{name:"Mining",color:"#7fa0b5",kind:"skill",rate:125000,method:"Volcanic Mine / MLM"},
+  smithing:{name:"Smithing",color:"#9aa6b2",kind:"skill",rate:300000,method:"Blast Furnace / Foundry"},
+  fishing:{name:"Fishing",color:"#4fb6e8",kind:"skill",rate:50000,method:"Tempoross / barbarian"},
+  cooking:{name:"Cooking",color:"#d06a4a",kind:"skill",rate:600000,method:"1t karambwans / wines"},
+  firemaking:{name:"Firemaking",color:"#ef8a3c",kind:"skill",rate:300000,method:"Wintertodt"},
+  woodcutting:{name:"Woodcutting",color:"#5fae54",kind:"skill",rate:100000,method:"Redwoods / 2t teaks"},
+  agility:{name:"Agility",color:"#46c79a",kind:"skill",rate:65000,method:"Hallowed Sepulchre"},
+  herblore:{name:"Herblore",color:"#8cc63f",kind:"skill",rate:450000,method:"Best-value potions"},
+  thieving:{name:"Thieving",color:"#cf6bd6",kind:"skill",rate:260000,method:"Pyramid Plunder"},
+  fletching:{name:"Fletching",color:"#b0c050",kind:"skill",rate:800000,method:"Darts / bow stringing"},
+  slayer:{name:"Slayer",color:"#e0594d",kind:"skill",rate:48000,method:"Tasks + cannon (carries combat)"},
+  farming:{name:"Farming",color:"#6abf69",kind:"skill",rate:300000,method:"Tree / herb runs"},
+  construction:{name:"Construction",color:"#cf9a5c",kind:"skill",rate:650000,method:"Mahogany tables + butler"},
+  hunter:{name:"Hunter",color:"#b8894f",kind:"skill",rate:220000,method:"Birdhouses / chinchompas"},
+  sailing:{name:"Sailing",color:"#2f93d6",kind:"skill",rate:140000,method:"Barracuda Trials"}
+};
+const ORDER=Object.keys(SKILLS);
+const SCHED=ORDER.filter(k=>SKILLS[k].kind==="skill");
+const METHODS={
+ prayer:[["Gilded altar (dragon bones)",500000],["Gilded altar (superior bones)",700000],["Ensouled heads",600000],["Chaos altar (cheaper)",450000]],
+ runecraft:[["Guardians of the Rift",45000],["Blood runes",48000],["ZMI / Ourania",50000],["Soul runes",42000]],
+ crafting:[["Dragonhide bodies",300000],["Battlestaves",450000],["Glassblowing",250000],["Gem cutting",200000]],
+ mining:[["3-tick iron/granite",95000],["Volcanic Mine",120000],["Motherlode Mine (AFK)",70000],["Amethyst (AFK)",30000]],
+ smithing:[["Blast Furnace (gold)",320000],["Blast Furnace (addy/rune)",240000],["Giants' Foundry",180000]],
+ fishing:[["Barbarian (3t, AFK)",55000],["Barbarian (1.5t)",90000],["Tempoross",40000],["Minnows / Aerial",35000]],
+ cooking:[["Karambwans (relaxed)",350000],["1-tick karambwans",800000],["Wines (1t)",450000]],
+ firemaking:[["Wintertodt (+loot)",280000],["Burning logs (line)",350000],["Forestry campfire",300000]],
+ woodcutting:[["Redwoods (AFK)",80000],["2-tick teaks",160000],["Sulliuscep",100000],["Forestry events",120000]],
+ agility:[["Hallowed Sepulchre",70000],["Ardougne rooftop",55000],["Pollnivneach rooftop",50000]],
+ herblore:[["Super/divine potions",450000],["Prayer/Sara brews",350000],["Mastering Mixology",200000]],
+ thieving:[["Pyramid Plunder",300000],["Blackjacking",270000],["Vyres (Darkmeyer)",250000],["Artefacts (GP)",180000]],
+ fletching:[["Bow stringing (magic)",800000],["Dragon darts",1000000],["Broad arrows",500000],["Amethyst bolts (AFK)",300000]],
+ slayer:[["Efficient + cannon",50000],["Max XP tasks",55000],["Relaxed / AFK",35000]],
+ farming:[["Tree + fruit-tree runs",400000],["Hardwood + tree runs",350000],["Herb runs",300000]],
+ construction:[["Mahogany tables",750000],["Oak larders (cheap)",350000],["Mahogany Homes",280000]],
+ hunter:[["Black chinchompas",260000],["Red chinchompas",200000],["Maniacal monkeys",140000],["Birdhouses (passive)",100000]],
+ sailing:[["Barracuda Trials",160000],["Sea Charting / courier",110000],["Shipwreck Salvaging (AFK)",80000]]
+};
+const DEFAULT_XP={attack:6066398,strength:12028327,defence:5571837,ranged:12407846,magic:12396214,hitpoints:13343304,prayer:6038314,runecraft:7169367,crafting:13891323,mining:13043891,smithing:6700973,fishing:10559752,cooking:13617663,firemaking:6529589,woodcutting:10168532,agility:7535302,herblore:6049225,thieving:6220827,fletching:13061293,slayer:8311936,farming:20447431,construction:7128626,hunter:13267486,sailing:214592};
+const IMG={};ORDER.forEach(k=>IMG[k]="https://oldschool.runescape.wiki/images/"+SKILLS[k].name+"_icon.png");
+
+const LOG={
+  slayer:[["Abyssal whip / dagger"],["Occult necklace \u2014 Thermy"],["Kraken tentacle + trident"],["Dragon boots"],["Imbued heart"],["Cerberus crystals"],["Brimstone ring / Hydra leather"]],
+  runecraft:[["Raiments of the Eye \u2014 full set","prio"],["Abyssal needle \u2192 Colossal pouch"],["Abyssal lantern"],["Catalytic talisman"],["Abyssal dyes \u00d73"],["Abyssal protector pet","rng"]],
+  thieving:[["Pharaoh's sceptre \u2014 Plunder"],["Rogue's equipment (full)"]],
+  fishing:[["Tome of water \u2014 Tempoross","prio"],["Fish barrel"],["Dragon harpoon"],["Big harpoonfish"],["Angler's outfit"],["Heron pet","rng"]],
+  woodcutting:[["Lumberjack outfit"],["Forestry kit + secateurs"],["Sturdy beehive + log basket"],["Beaver pet","rng"]],
+  agility:[["Ring of endurance \u2014 Sepulchre","prio"],["Graceful recolor (marks)"],["Strange old lockpick"],["Giant squirrel pet","rng"]],
+  firemaking:[["Pyromancer outfit \u2014 Wintertodt","prio"],["Tome of fire"],["Dragon axe"],["Phoenix pet","rng"]],
+  smithing:[["Smiths' outfit \u2014 Foundry","prio"],["Colossal blade"],["Kovac's grog"]],
+  sailing:[["Sea Charting 100% (+2.5% keg)","prio"],["Barracuda Trial outfit"],["Sailing pet","rng"]],
+  mining:[["Prospector outfit \u2014 MLM","prio"],["Golden nugget gear"],["Rock golem pet","rng"]],
+  cooking:[["Cooking cape perks"],["Rocky pet","rng"]],
+  hunter:[["Larupia/graahk/kyatt outfits"],["Herbiboar items"],["Baby chinchompa pet","rng"]],
+  crafting:[["Crafting outfit pieces"]]
+};
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const KEY="maxcape_state_v5";
+let state={cfg:{},plan:null,done:{},log:{}};
+let mem=null;
+const LS=(function(){try{localStorage.setItem("__mc_t","1");localStorage.removeItem("__mc_t");return true;}catch(e){return false;}})();
+const WS=(typeof window!=="undefined"&&window.storage&&typeof window.storage.get==="function");
+async function load(){let raw=null;if(LS){try{raw=localStorage.getItem(KEY);}catch(e){}}if(raw==null&&WS){try{const r=await window.storage.get(KEY);raw=r&&r.value;}catch(e){}}if(raw==null)raw=mem;if(raw){try{state=Object.assign(state,JSON.parse(raw));}catch(e){}}}
+function persistNow(){const str=JSON.stringify(state);if(LS){try{localStorage.setItem(KEY,str);return;}catch(e){}}if(WS){try{window.storage.set(KEY,str);return;}catch(e){}}mem=str;}
+let st=null;function save(){clearTimeout(st);st=setTimeout(persistNow,250);}
+function wipeStore(){if(LS){try{localStorage.removeItem(KEY);}catch(e){}}if(WS){try{window.storage.delete(KEY);}catch(e){}}mem=null;}
+
+function el(t,c,h){const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;}
+function fmt(n){n=Math.round(n);if(n>=1e6)return (n/1e6).toFixed(2).replace(/\.?0+$/,'')+'M';if(n>=1e3)return Math.round(n/1e3)+'K';return ''+n;}
+function num(s){if(s==null)return 0;s=(''+s).trim().toLowerCase().replace(/,/g,'').replace(/\s/g,'');if(s==='')return 0;let m=1;if(s.endsWith('m')){m=1e6;s=s.slice(0,-1);}else if(s.endsWith('k')){m=1e3;s=s.slice(0,-1);}const n=parseFloat(s);return isNaN(n)?0:Math.max(0,Math.round(n*m));}
+function iconSVG(k,sz){return '<img class="ico-img" src="'+IMG[k]+'" width="'+sz+'" height="'+sz+'" alt="" loading="lazy" decoding="async" onerror="iconFallback(this,&quot;'+k+'&quot;,'+sz+')">';}
+function vecSVG(k,sz){return '<svg viewBox="0 0 24 24" width="'+sz+'" height="'+sz+'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[k]+'</svg>';}
+function iconFallback(img,k,sz){img.outerHTML=vecSVG(k,sz);}
+function icoSpan(k,sz){return '<span class="ico" style="color:'+SKILLS[k].color+'">'+iconSVG(k,sz)+'</span>';}
+function fmtDate(d){return d.getDate()+" "+MON[d.getMonth()]+" "+String(d.getFullYear()).slice(2);}
+function todayMid(){const d=new Date();d.setHours(0,0,0,0);return d;}
+function isoDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function weeksFromDate(ds){const d=new Date(ds+"T00:00:00");return Math.max(1,Math.floor((d-todayMid())/(7*864e5)));}
+function computeHours(){const c=state.cfg;const hours={};let totalHours=0,totalRemXP=0;SCHED.forEach(k=>{const rem=Math.max(0,XP99-num(c.xp[k]));if(rem>0){const r=Math.max(1,num(c.rate[k])||SKILLS[k].rate);hours[k]=rem/r;totalHours+=hours[k];totalRemXP+=rem;}});let combatRem=0;["attack","strength","defence","ranged","magic"].forEach(k=>combatRem+=Math.max(0,XP99-num(c.xp[k])));const slayerRem=Math.max(0,XP99-num(c.xp.slayer));const uncovered=Math.max(0,combatRem-slayerRem*4);let combatNote;if(combatRem<=0)combatNote="All combat skills are already 99.";else if(uncovered<=0)combatNote="Combat (~"+fmt(combatRem)+" XP) rides along with Slayer (~"+fmt(slayerRem*4)+" combat XP from your "+fmt(slayerRem)+" Slayer XP).";else{const eh=uncovered/COMBAT_RATE;if(hours.slayer==null){hours.slayer=0;totalRemXP+=slayerRem;}hours.slayer+=eh;totalHours+=eh;combatNote="Slayer covers most combat; ~"+fmt(uncovered)+" XP needs dedicated combat (NMZ), folded into Slayer (~"+Math.round(eh)+"h).";}return {hours,totalHours,totalRemXP,combatNote};}
+function updateSum(th,w,hpw){const e=document.getElementById("liveSum");if(e)e.innerHTML="\u2248 "+Math.round(th)+"h total \u00b7 "+w+" weeks \u00b7 ~"+(Math.round(hpw*10)/10)+"h/week"+(hpw>40?' <span style="color:var(--red)">(heavy \u2014 push the date back)</span>':"");}
+function syncFromDate(){const {totalHours}=computeHours();const w=weeksFromDate(state.cfg.date);const hpw=totalHours/w;state.cfg.hpw=Math.round(hpw*10)/10;const hi=document.getElementById("hpwInput");if(hi&&document.activeElement!==hi)hi.value=state.cfg.hpw;updateSum(totalHours,w,hpw);}
+function syncFromHpw(val){const hpw=Math.max(1,num(val)||1);const {totalHours}=computeHours();const w=Math.max(1,Math.ceil(totalHours/hpw));const d=new Date(todayMid().getTime()+w*7*864e5);state.cfg.date=isoDate(d);state.cfg.hpw=hpw;const di=document.getElementById("dateInput");if(di&&document.activeElement!==di)di.value=state.cfg.date;updateSum(totalHours,w,hpw);}
+async function womFetch(rsn){
+  const u=encodeURIComponent(rsn.trim().toLowerCase());const base="https://api.wiseoldman.net/v2/players/"+u;
+  let data=null,status=0;
+  async function tryJson(url,opt){try{const r=await fetch(url,opt);status=r.status;if(r.ok)return await r.json();}catch(e){}return null;}
+  data=await tryJson(base,{method:"POST"});
+  if(!data)data=await tryJson(base);
+  if(!data)data=await tryJson("https://api.allorigins.win/raw?url="+encodeURIComponent(base));
+  if(!data){
+    if(status===404)throw new Error("Player not found \u2014 check the exact spelling.");
+    throw new Error("Couldn\u2019t reach the hiscores off that RSN. You can also enter XP manually.");
+  }
+  const snap=data&&data.latestSnapshot&&data.latestSnapshot.data;const sk=snap&&snap.skills;
+  if(!sk)throw new Error("No stats found for that name.");return {skills:sk,bosses:snap.bosses||{},activities:snap.activities||{},computed:snap.computed||{},display:data.displayName||rsn};
+}
+function applyStats(skills){ORDER.forEach(k=>{let s=skills[k];if(!s&&k==="runecraft")s=skills.runecrafting;if(!s||typeof s.experience!=="number")return;state.cfg.xp[k]=s.experience>0?s.experience:0;});}
+const BOSSNAME={tztok_jad:"TzTok-Jad",tzkal_zuk:"TzKal-Zuk",kreearra:"Kree'arra",kril_tsutsaroth:"K'ril Tsutsaroth",general_graardor:"General Graardor",commander_zilyana:"Commander Zilyana",chambers_of_xeric:"Chambers of Xeric",chambers_of_xeric_challenge_mode:"CoX: Challenge",theatre_of_blood:"Theatre of Blood",theatre_of_blood_hard_mode:"ToB: Hard",tombs_of_amascut:"Tombs of Amascut",tombs_of_amascut_expert:"ToA: Expert",the_corrupted_gauntlet:"Corrupted Gauntlet",the_gauntlet:"Gauntlet",thermonuclear_smoke_devil:"Thermy",grotesque_guardians:"Grotesque Guardians",the_leviathan:"The Leviathan",the_whisperer:"The Whisperer",vardorvis:"Vardorvis",duke_sucellus:"Duke Sucellus",phantom_muspah:"Phantom Muspah",calvarion:"Calvar'ion",vetion:"Vet'ion",alchemical_hydra:"Alchemical Hydra",king_black_dragon:"King Black Dragon"};
+function bossName(k){return BOSSNAME[k]||k.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());}
+function applyPvm(res){const b={},src=res.bosses||{};Object.keys(src).forEach(k=>{const v=src[k];const kills=v&&typeof v.kills==="number"?v.kills:(typeof v==="number"?v:0);if(kills>0)b[k]=kills;});let clog=0;const act=res.activities&&res.activities.collections_logged;if(act&&typeof act.score==="number"&&act.score>0)clog=act.score;let ehb=0;const c=res.computed&&res.computed.ehb;if(c&&typeof c.value==="number"&&c.value>0)ehb=Math.round(c.value);state.cfg.pvm={bosses:b,clog:clog,ehb:ehb,updatedStr:fmtDate(todayMid())};}
+function templeUrl(rsn){return "https://templeosrs.com/api/collection-log/player_collection_log.php?player="+encodeURIComponent((rsn||"").trim())+"&categories=all&includenames=1&includemissingitems=1&categoryhours=1";}
+function updateTplLink(){const a=document.getElementById("tplLink");if(a)a.href=templeUrl(state.cfg.rsn||"");}
+async function templeFetch(rsn){
+  const url=templeUrl(rsn);
+  async function tryJson(u2,unwrap){try{const r=await fetch(u2);if(!r.ok)return null;const t=await r.text();let s=t;if(unwrap){try{s=JSON.parse(t).contents;}catch(e){return null;}}return JSON.parse(s);}catch(e){return null;}}
+  let data=await tryJson(url,false);
+  if(!data)data=await tryJson("https://api.allorigins.win/raw?url="+encodeURIComponent(url),false);
+  if(!data)data=await tryJson("https://api.allorigins.win/get?url="+encodeURIComponent(url),true);
+  if(!data)data=await tryJson("https://corsproxy.io/?url="+encodeURIComponent(url),false);
+  if(!data)throw new Error("Couldn’t reach TempleOSRS automatically — use “Paste data manually” below.");
+  return data;
+}
+function doTempleLoad(){
+  const ta=document.getElementById("tplPaste"),st=document.getElementById("grindStat");
+  let raw;try{raw=JSON.parse((ta&&ta.value)||"");}catch(e){if(st){st.style.color="var(--red)";st.textContent="That isn’t valid JSON — copy the entire response.";}return;}
+  const parsed=parseClog(raw);
+  if(!parsed||!parsed.cats.length){if(st){st.style.color="var(--red)";st.textContent="Couldn’t read collection log data from that JSON.";}return;}
+  parsed.updatedStr=fmtDate(todayMid());state.cfg.clogData=parsed;persistNow();if(state.plan&&!state.plan.empty)renderAll();else renderSetup();
+  const slots=parsed.finished!=null?parsed.finished:parsed.cats.reduce((a,c)=>a+c.got,0);
+  if(st){st.style.color="var(--green)";st.textContent="✓ Loaded "+slots+(parsed.available?" / "+parsed.available:"")+" slots — "+parsed.cats.filter(c=>c.left>0).length+" grinds below.";}
+}
+function clogItName(it){if(it==null)return null;if(typeof it==="object")return it.name||(it.id!=null?"#"+it.id:null);return "#"+it;}
+function clogItGot(it){if(it&&typeof it==="object"){if(typeof it.count==="number")return it.count>0;if("obtained" in it)return !!it.obtained;}return true;}
+function clogNum(x){const n=Number(x);return isFinite(n)?n:null;}
+const SKILL2CATS={firemaking:["wintertodt"],fishing:["tempoross","aerial_fishing","fishing_trawler"],runecraft:["guardians_of_the_rift"],agility:["hallowed_sepulchre","rooftop_agility","brimhaven_agility_arena","colossal_wyrm_agility"],mining:["motherlode_mine","volcanic_mine","camdozaal","shooting_stars"],smithing:["giants_foundry"],construction:["mahogany_homes"],farming:["tithe_farm","hespori"],woodcutting:["forestry","temple_trekking"],herblore:["mastering_mixology"],thieving:["rogues_den"],hunter:["hunter_guild","chompy_bird_hunting","monkey_backpacks"],cooking:["gnome_restaurant"],fletching:["vale_totems"],slayer:["slayer"],sailing:["barracuda_trials","sailing_miscellaneous","ocean_encounters","sea_treasures","lost_schematics","boat_paints"]};
+function clogSkillData(k){const cd=state.cfg.clogData;if(!cd||!cd.cats)return null;const keys=SKILL2CATS[k];if(!keys)return null;const byKey={};cd.cats.forEach(c=>byKey[c.key]=c);const gotSet={},all={};let found=false;keys.forEach(kk=>{const c=byKey[kk];if(!c)return;found=true;(c.gotNames||[]).forEach(n=>{gotSet[n]=1;all[n]=1;});(c.missing||[]).forEach(n=>{all[n]=1;});});if(!found)return null;const missing=Object.keys(all).filter(n=>!gotSet[n]);const total=Object.keys(all).length;if(!total)return null;return {got:total-missing.length,total:total,missing:missing,obtained:Object.keys(gotSet)};}
+function parseClog(resp){
+  const d=resp&&resp.data&&typeof resp.data==="object"?resp.data:resp;
+  if(!d||typeof d!=="object")return null;
+  const deny={all_pets:1,skilling_pets:1};
+  const out={finished:clogNum(d.total_collections_finished),available:clogNum(d.total_collections_available),catsDone:clogNum(d.total_categories_finished),catsTotal:clogNum(d.total_categories_available),buckets:(d.category_hours&&typeof d.category_hours==="object")?d.category_hours:null,cats:[]};
+  const cont=(d.items&&typeof d.items==="object")?d.items:(d.categories&&typeof d.categories==="object"?d.categories:null);
+  if(!cont)return out;
+  Object.keys(cont).forEach(key=>{
+    if(deny[key])return;
+    const v=cont[key];let arr=null;
+    if(Array.isArray(v))arr=v;else if(v&&typeof v==="object"&&Array.isArray(v.items))arr=v.items;
+    if(!arr||!arr.length)return;
+    let got=0;const miss=[],gotNames=[];
+    arr.forEach(it=>{const c=(it&&typeof it.count==="number")?it.count:(clogItGot(it)?1:0);const nm=clogItName(it);if(c>0){got++;if(nm)gotNames.push(nm);}else if(nm)miss.push(nm);});
+    const total=arr.length;if(!total)return;
+    out.cats.push({key:String(key),name:bossName(String(key)),got:got,total:total,left:total-got,missing:miss,gotNames:gotNames});
+  });
+  return out;
+}
+async function doTempleSync(){
+  const rsn=(state.cfg.rsn||"").trim(),st=document.getElementById("grindStat"),btn=document.getElementById("tplSync");updateTplLink();
+  if(!rsn){if(st){st.style.color="var(--red)";st.textContent="Enter your RSN in the setup above first.";}return;}
+  if(btn)btn.disabled=true;if(st){st.style.color="";st.textContent="Fetching collection log for "+rsn+"\u2026";}
+  try{
+    const parsed=parseClog(await templeFetch(rsn));
+    if(!parsed||!parsed.cats.length){if(st){st.style.color="var(--red)";st.innerHTML="No collection log data found \u2014 make sure "+esc(rsn)+" has synced once via the TempleOSRS RuneLite plugin.";}return;}
+    parsed.updatedStr=fmtDate(todayMid());state.cfg.clogData=parsed;persistNow();if(state.plan&&!state.plan.empty)renderAll();else renderSetup();
+    const slots=parsed.finished!=null?parsed.finished:parsed.cats.reduce((a,c)=>a+c.got,0);
+    if(st){st.style.color="var(--green)";st.textContent="\u2713 Synced "+slots+(parsed.available?" / "+parsed.available:"")+" slots \u2014 "+parsed.cats.filter(c=>c.left>0).length+" grinds below.";}
+  }catch(e){if(st){st.style.color="var(--red)";st.textContent=(e&&e.message)||"Sync failed.";}}
+  finally{if(btn)btn.disabled=false;}
+}
+function renderGrinds(){
+  const bd=document.getElementById("grindBody");if(!bd)return;const cd=state.cfg.clogData;
+  if(!cd||!cd.cats||!cd.cats.length){bd.innerHTML='<p class="hint" style="margin-top:10px">Load your collection log in <b>Setup</b> (under your RuneScape name) to see your closest grinds.</p>';return;}
+  const inc=cd.cats.filter(c=>c.left>0),sortBy=state.cfg.grindSort||"close";
+  inc.sort((a,b)=>sortBy==="pct"?((b.got/b.total)-(a.got/a.total))||(a.left-b.left):(a.left-b.left)||((b.got/b.total)-(a.got/a.total)));
+  const slots=cd.finished!=null?cd.finished:cd.cats.reduce((a,c)=>a+c.got,0);
+  let body='<div style="margin:12px 0 8px"><span class="stat"><b>'+slots+'</b> slots'+(cd.available?" / "+cd.available:"")+'</span>';
+  if(cd.catsTotal)body+='<span class="stat"><b>'+(cd.catsDone!=null?cd.catsDone:"?")+'</b> / '+cd.catsTotal+' categories</span>';
+  body+='<span class="stat"><b>'+inc.length+'</b> grinds left</span></div>';
+  if(cd.buckets){const BK=[["time_to_finish_bosses","Bosses"],["time_to_finish_raids","Raids"],["time_to_finish_minigames","Minigames"],["time_to_finish_clues","Clues"],["time_to_finish_other","Other"]];const parts=BK.filter(b=>cd.buckets[b[0]]!=null).map(b=>b[1]+" ~"+Math.round(cd.buckets[b[0]]).toLocaleString()+"h");if(parts.length)body+='<p class="hint" style="margin:0 0 10px">Est. time to finish — '+parts.join(" · ")+'</p>';}
+  body+='<div class="grnav"><button class="gsort'+(sortBy==="close"?" on":"")+'" data-s="close">Fewest items left</button><button class="gsort'+(sortBy==="pct"?" on":"")+'" data-s="pct">Highest % done</button></div>';
+  body+='<div class="grinds">';
+  inc.slice(0,80).forEach(c=>{const pct=Math.round(c.got/c.total*100);const miss=c.missing.length?(c.missing.slice(0,12).map(esc).join(", ")+(c.missing.length>12?" +"+(c.missing.length-12)+" more":"")):"—";body+='<div class="grind"><div class="gh"><b>'+esc(c.name)+'</b><span>'+c.got+'/'+c.total+' · '+pct+'%</span></div><div class="gbar"><i style="width:'+pct+'%"></i></div><div class="gmiss">'+miss+'</div></div>';});
+  body+='</div>';
+  bd.innerHTML=body;
+  bd.querySelectorAll(".gsort").forEach(b=>b.addEventListener("click",()=>{state.cfg.grindSort=b.dataset.s;save();renderGrinds();}));
+}
+function esc(s){return (''+s).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+async function doFetch(rsn,btn){
+  const stat=document.getElementById("fetchStat");rsn=(rsn||"").trim();
+  if(!rsn){stat.innerHTML='<span style="color:var(--red)">Enter a name first.</span>';return;}
+  state.cfg.rsn=rsn;save();btn.disabled=true;const old=btn.textContent;btn.textContent="Fetching\u2026";stat.style.color="";stat.textContent="Looking up "+rsn+" on Wise Old Man\u2026";
+  try{const res=await womFetch(rsn);const had=!!(state.plan&&!state.plan.empty);applyStats(res.skills);applyPvm(res);save();renderAll();const s2=document.getElementById("fetchStat");if(s2)s2.innerHTML='<span style="color:var(--green)">\u2713 '+(had?"Updated XP for "+esc(res.display)+" \u2014 goals recalculated, rotation unchanged.":"Loaded stats for "+esc(res.display)+" \u2014 review, then Generate plan.")+'</span>';}
+  catch(e){btn.disabled=false;btn.textContent=old;stat.innerHTML='<span style="color:var(--red)">'+esc(e&&e.message||"Lookup failed.")+'</span>';}
+}
+
+function cfgInit(){
+  const c=state.cfg;
+  if(!c.xp)c.xp=Object.assign({},DEFAULT_XP);
+  if(!c.rate)c.rate={};if(!c.method)c.method={};
+  SCHED.forEach(k=>{if(c.rate[k]==null)c.rate[k]=METHODS[k][0][1];if(c.method[k]==null){const m=METHODS[k].find(x=>x[1]===num(c.rate[k]));c.method[k]=m?m[0]:"Custom";}});
+  if(c.rsn==null)c.rsn="Fanktastc";
+  if(!c.mode)c.mode="hours";
+  if(c.hpw==null)c.hpw=16;
+  if(!c.date)c.date="2027-06-02";
+}
+
+/* ---------- generation ---------- */
+function allocateWeeks(hours,totalWeeks){
+  const keys=Object.keys(hours),n=keys.length,sum=keys.reduce((a,k)=>a+hours[k],0);
+  const extra=totalWeeks-n,out={};
+  const raw=keys.map(k=>({k,share:sum>0?hours[k]/sum*extra:0}));
+  let used=0;raw.forEach(o=>{const f=Math.floor(o.share);out[o.k]=1+f;used+=f;});
+  let left=extra-used;
+  raw.sort((a,b)=>(b.share-Math.floor(b.share))-(a.share-Math.floor(a.share)));
+  for(let i=0;i<left;i++)out[raw[i%n].k]++;
+  return out;
+}
+function evenRotation(sw){
+  const keys=Object.keys(sw),N=keys.reduce((a,k)=>a+sw[k],0);
+  const ratio={},acc={},placed={};keys.forEach(k=>{ratio[k]=sw[k]/N;acc[k]=0;placed[k]=0;});
+  const seq=[];let prev=null;
+  for(let s=0;s<N;s++){
+    keys.forEach(k=>{if(placed[k]<sw[k])acc[k]+=ratio[k];});
+    let avail=keys.filter(k=>placed[k]<sw[k]).sort((a,b)=>acc[b]-acc[a]);
+    let pick=avail[0];if(pick===prev&&avail.length>1)pick=avail[1];
+    acc[pick]-=1;placed[pick]++;seq.push(pick);prev=pick;
+  }
+  return seq;
+}
+function generate(){
+  cfgInit();const c=state.cfg;
+  const {hours,totalHours,totalRemXP,combatNote}=computeHours();
+  const keys=Object.keys(hours),n=keys.length;
+  if(n===0){state.plan={empty:true};save();renderAll();return;}
+  const start=todayMid();
+  let totalWeeks=weeksFromDate(c.date),infeasible=false,warnMsg="";
+  if(totalWeeks<n){totalWeeks=n;infeasible=true;warnMsg="That date is too soon to give every skill a week \u2014 extended to "+n+" weeks ("+fmtDate(new Date(start.getTime()+n*7*864e5))+").";}
+  const hpw=totalHours/totalWeeks;
+  if(!infeasible&&hpw>40)warnMsg="This pace is ~"+Math.round(hpw)+"h/week \u2014 very heavy. Push the date back to ease it.";
+  const sw=allocateWeeks(hours,totalWeeks),seq=evenRotation(sw);
+  const weeks=seq.map((sk,i)=>[fmtDate(new Date(start.getTime()+i*7*864e5)),sk]);
+  const finish=new Date(start.getTime()+totalWeeks*7*864e5);
+  state.plan={weeks,skillWeeks:sw,start:start.getTime(),totalHours,hpw,totalWeeks,finish:fmtDate(finish),infeasible,warnMsg,combatNote,totalRemXP,hours};
+  state.done={};save();renderAll();
+  document.getElementById("trackerWrap").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ---------- setup UI ---------- */
+function renderSetup(){
+  cfgInit();const c=state.cfg,box=document.getElementById("setup");box.innerHTML="";
+  const r1=el("div","frow");
+  const rsnInp=inputEl("text",c.rsn,v=>{c.rsn=v;save();},"160px");
+  r1.appendChild(field("RuneScape name",rsnInp));
+  const planned=!!(state.plan&&!state.plan.empty);
+  const fb=el("button","fetchbtn",planned?"Update stats":"Fetch stats");fb.type="button";fb.onclick=()=>doFetch(rsnInp.value,fb);
+  const fbf=el("div","fld");fbf.appendChild(el("label",null,"&nbsp;"));fbf.appendChild(fb);r1.appendChild(fbf);
+  const sline=el("div","fld");sline.style.flexBasis="100%";const hintTxt=planned?"Hit Update to pull your latest XP \u2014 per-skill goals recalc, the rotation stays put.":"Type your RSN and hit Fetch to auto-fill all 24 skills (via Wise Old Man).";sline.innerHTML='<div id="fetchStat" style="font-size:12.5px;color:var(--muted)">'+hintTxt+'</div>';r1.appendChild(sline);
+  const dInput=inputEl("date",c.date,null,"160px");dInput.id="dateInput";
+  const hInput=inputEl("number",c.hpw,null,"110px");hInput.id="hpwInput";
+  dInput.addEventListener("input",()=>{c.date=dInput.value;save();syncFromDate();});
+  hInput.addEventListener("input",()=>{syncFromHpw(hInput.value);save();});
+  r1.appendChild(field("Target date",dInput));
+  r1.appendChild(field("\u2248 Hours / week",hInput));
+  const sumEl=el("div","fld");sumEl.style.flexBasis="100%";sumEl.innerHTML='<label>Workload</label><div id="liveSum" style="color:var(--gold-bright);font-weight:600;font-variant-numeric:tabular-nums">\u2014</div>';r1.appendChild(sumEl);
+  box.appendChild(r1);
+  const cld=el("details","adv");cld.style.marginBottom="14px";
+  cld.appendChild(el("summary",null,"Collection log — load to personalize targets (optional)"));
+  const cbody=el("div");cbody.style.marginTop="10px";
+  cbody.innerHTML='<p class="hint" style="margin-top:0">Needs a one-time TempleOSRS RuneLite plugin sync. Open <a id="tplLink" target="_blank" rel="noopener" style="color:var(--gold)">your TempleOSRS data</a>, copy it all, paste below, and Load — your targets will then show what you still need. (Auto-fetch usually fails due to TempleOSRS blocking cross-site requests; paste is reliable.)</p>';
+  const ta=document.createElement("textarea");ta.id="tplPaste";ta.placeholder="Paste the JSON from the URL here";ta.style.cssText="width:100%;min-height:80px;background:#000;border:1px solid var(--edge);color:var(--cream);border-radius:8px;padding:9px;font-family:monospace;font-size:11px;box-sizing:border-box";cbody.appendChild(ta);
+  const brow=el("div");brow.style.cssText="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px";
+  const loadBtn=el("button","fetchbtn","Load collection log");loadBtn.type="button";loadBtn.onclick=doTempleLoad;brow.appendChild(loadBtn);
+  const syncBtn=el("button","fetchbtn","Try auto-fetch");syncBtn.type="button";syncBtn.id="tplSync";syncBtn.onclick=doTempleSync;brow.appendChild(syncBtn);
+  cbody.appendChild(brow);
+  const gstat=el("div");gstat.id="grindStat";gstat.style.cssText="font-size:12px;margin-top:7px";
+  const _cd=state.cfg.clogData;if(_cd&&_cd.cats&&_cd.cats.length){gstat.style.color="var(--green)";gstat.textContent="✓ "+(_cd.finished!=null?_cd.finished:"?")+(_cd.available?" / "+_cd.available:"")+" slots loaded — targets personalized.";}else{gstat.style.color="var(--muted)";}
+  cbody.appendChild(gstat);cld.appendChild(cbody);box.appendChild(cld);
+  updateTplLink();
+
+  box.appendChild(el("div","grp","Combat \u2014 trained via Slayer"));
+  const cg=el("div","skillsform");COMBAT.forEach(k=>cg.appendChild(srow(k,false)));box.appendChild(cg);
+  box.appendChild(el("div","grp","Skills"));
+  const sg=el("div","skillsform");SCHED.forEach(k=>sg.appendChild(srow(k,false)));box.appendChild(sg);
+
+  const det=el("details","adv");det.appendChild(el("summary",null,"Advanced \u2014 training method & rate"));
+  const rg=el("div");rg.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:9px;margin-top:10px";
+  SCHED.forEach(k=>{
+    const row=el("div","srow");row.style.setProperty("--c",SKILLS[k].color);
+    row.innerHTML=icoSpan(k,18)+'<span class="nm" style="flex:0 0 auto;min-width:74px">'+SKILLS[k].name+'</span>';
+    const sel=document.createElement("select");sel.className="msel";
+    (METHODS[k]||[]).forEach((m,i)=>{const o=document.createElement("option");o.value=i;o.textContent=m[0]+" \u00b7 "+fmt(m[1])+"/hr";sel.appendChild(o);});
+    const oc=document.createElement("option");oc.value="custom";oc.textContent="Custom rate";sel.appendChild(oc);
+    const rateInp=inputEl("text",c.rate[k],null,"82px","numeric");
+    const idx=(METHODS[k]||[]).findIndex(m=>m[0]===c.method[k]);sel.value=idx>=0?String(idx):"custom";
+    sel.addEventListener("change",()=>{if(sel.value!=="custom"){const m=METHODS[k][+sel.value];c.rate[k]=m[1];c.method[k]=m[0];rateInp.value=m[1];}else{c.method[k]="Custom";}save();syncFromDate();if(state.plan&&!state.plan.empty)refresh();});
+    rateInp.addEventListener("input",()=>{c.rate[k]=num(rateInp.value);c.method[k]="Custom";sel.value="custom";save();syncFromDate();if(state.plan&&!state.plan.empty)refresh();});
+    row.appendChild(sel);row.appendChild(rateInp);rg.appendChild(row);
+  });
+  det.appendChild(rg);box.appendChild(det);
+
+  const btn=el("button","genbtn",state.plan?"Update plan":"Generate plan");btn.onclick=generate;box.appendChild(btn);
+  box.appendChild(el("div","note","Set a target date \u2014 the planner shows the hours/week it needs. Too much grinding? Push the date back (or type an hours/week and the date moves to match). Rates are editable estimates; combat rides along with Slayer; Farming is real-time-gated, so its hours are a rough active-time figure."));
+  syncFromDate();
+}
+function field(label,input){const f=el("div","fld");f.appendChild(el("label",null,label));f.appendChild(input);return f;}
+function inputEl(type,val,on,w,mode){const i=document.createElement("input");i.type=type;if(w)i.style.width=w;if(mode)i.inputMode=mode;else if(type==="number")i.inputMode="numeric";if(type==="text"&&!mode){i.autocapitalize="off";i.autocomplete="off";i.spellcheck=false;}i.value=val==null?"":val;if(on)i.addEventListener("input",()=>on(i.value));return i;}
+function srow(k){
+  const row=el("div","srow");row.style.setProperty("--c",SKILLS[k].color);
+  row.innerHTML=icoSpan(k,18)+'<span class="nm">'+SKILLS[k].name+'<small class="m99" style="display:none">99 \u2713</small></span>';
+  const small=row.querySelector(".m99");
+  const inp=inputEl("text",state.cfg.xp[k],null,"96px","numeric");
+  function upd(){const is99=num(inp.value)>=XP99;row.classList.toggle("maxed",is99);small.style.display=is99?"":"none";}
+  inp.addEventListener("input",()=>{state.cfg.xp[k]=num(inp.value);save();syncFromDate();upd();});
+  row.appendChild(inp);upd();return row;
+}
+
+/* ---------- tracker ---------- */
+function planWeekNums(key){const a=[];state.plan.weeks.forEach((w,i)=>{if(w[1]===key)a.push(i+1);});return a;}
+function calc(key){
+  const wns=planWeekNums(key),cur=num(state.cfg.xp[key]),rem=Math.max(0,XP99-cur);
+  const doneCount=wns.filter(wn=>state.done[wn]).length,weeksLeft=wns.length-doneCount;
+  return {wns,cur,rem,weeksLeft,doneCount,total:wns.length,target:(rem>0&&weeksLeft>0)?rem/weeksLeft:0,behind:rem>0&&weeksLeft===0};
+}
+const weekEls={};
+function renderTracker(){
+  const wrap=document.getElementById("trackerWrap");wrap.classList.remove("hidden");
+  const p=state.plan;
+  // skill grid
+  const g=document.getElementById("skillgrid");g.innerHTML="";
+  Object.keys(p.skillWeeks).forEach(k=>{
+    const s=SKILLS[k],c=el("div","skill");c.dataset.k=k;c.style.setProperty("--c",s.color);
+    c.innerHTML='<div class="row1">'+icoSpan(k,20)+'<span class="sname">'+s.name+'</span><span class="wk" data-wk></span></div>'
+      +'<div class="smeth" data-meth></div>'
+      +'<input class="cur" type="text" inputmode="numeric">'
+      +'<div class="nums"><span class="b">left <b data-rem></b></span><span class="b">need/wk <b data-tgt></b></span></div>'
+      +'<div class="mini"><i data-bar style="width:0%"></i></div>';
+    const inp=c.querySelector("input");inp.value=state.cfg.xp[k];
+    inp.addEventListener("input",()=>{state.cfg.xp[k]=num(inp.value);save();refresh();});
+    g.appendChild(c);
+  });
+  // timeline
+  const t=document.getElementById("timeline");t.innerHTML="";Object.keys(weekEls).forEach(k=>delete weekEls[k]);
+  let curKey=null,ww=null;
+  p.weeks.forEach((row,i)=>{
+    const wn=i+1,[date,key]=row,s=SKILLS[key],parts=date.split(" "),mk=parts[1]+parts[2];
+    if(mk!==curKey){curKey=mk;const grp=el("div","phasegroup");grp.appendChild(el("div","monthbar",parts[1]+" 20"+parts[2]));ww=el("div","weeks");grp.appendChild(ww);t.appendChild(grp);}
+    const w=el("div","week");w.style.setProperty("--c",s.color);
+    w.innerHTML='<div class="wn">WEEK '+wn+' \u00b7 '+date+'</div>'+icoSpan(key,26).replace('class="ico"','class="ico" style="justify-content:center;color:'+s.color+'"')+'<div class="ws">'+s.name+'</div><div class="wgoal" data-goal></div><div class="wsub" data-sub>this week</div><div class="wbreak" data-break></div>';
+    w.addEventListener("click",()=>{state.done[wn]=!state.done[wn];if(!state.done[wn])delete state.done[wn];save();refresh();});
+    weekEls[wn]={card:w,goal:w.querySelector("[data-goal]"),sub:w.querySelector("[data-sub]"),brk:w.querySelector("[data-break]"),key};
+    ww.appendChild(w);
+  });
+  // collection log
+  const cl=document.getElementById("clog");cl.innerHTML="";let any=false;
+  Object.keys(p.skillWeeks).forEach(k=>{
+    const cs=clogSkillData(k);
+    if(cs){any=true;const s=SKILLS[k],card=el("div","card");card.style.setProperty("--c",s.color);
+      const pct=cs.total?Math.round(cs.got/cs.total*100):0;
+      card.innerHTML='<h3>'+icoSpan(k,17)+s.name+'</h3><div class="cnt">'+cs.got+' / '+cs.total+' logged · '+pct+'%</div><div class="mini"><i style="width:'+pct+'%;background:var(--c)"></i></div>';
+      if(cs.missing.length){const SHOW=6,need=el("div");need.style.marginTop="8px";
+        cs.missing.forEach((nm,i)=>{const r=el("div","item need"+(i>=SHOW?" extra":""));r.innerHTML='<span class="box"></span><span class="txt">'+esc(nm)+'</span>';need.appendChild(r);});
+        card.appendChild(need);
+        if(cs.missing.length>SHOW){const more=cs.missing.length-SHOW,btn=el("div","moretoggle");btn.textContent='+ '+more+' more still needed';btn.addEventListener("click",()=>{const ex=card.classList.toggle("expanded");btn.textContent=ex?'Show less':('+ '+more+' more still needed');});card.appendChild(btn);}
+      }else{const dn=el("div","item");dn.style.cursor="default";dn.innerHTML='<span class="txt" style="color:var(--green)">✓ all logged</span>';card.appendChild(dn);}
+      if(cs.obtained&&cs.obtained.length){const det=document.createElement("details");det.className="gotlist";det.innerHTML='<summary>✓ '+cs.obtained.length+' obtained — tap to view</summary>';const wrap=el("div");cs.obtained.slice().sort().forEach(nm=>{const r=el("div","item on");r.innerHTML='<span class="box"></span><span class="txt">'+esc(nm)+'</span>';wrap.appendChild(r);});det.appendChild(wrap);card.appendChild(det);}
+      cl.appendChild(card);return;}
+    if(!LOG[k])return;any=true;const s=SKILLS[k],card=el("div","card");card.style.setProperty("--c",s.color);
+    const items=LOG[k],got=items.filter((it,idx)=>state.log[k+idx]).length;
+    card.innerHTML='<h3>'+icoSpan(k,17)+s.name+'</h3><div class="cnt" data-cnt="'+k+'">'+got+' / '+items.length+' logged</div>';
+    items.forEach((it,idx)=>{const id=k+idx,rowi=el("div","item");let txt='<span class="txt '+(it[1]==='prio'?'priority':'')+'">'+it[0]+'</span>';if(it[1]==='rng')txt+='<span class="rng">RNG</span>';rowi.innerHTML='<span class="box"></span>'+txt;if(state.log[id])rowi.classList.add("on");rowi.addEventListener("click",()=>{state.log[id]=!state.log[id];rowi.classList.toggle("on",!!state.log[id]);save();logCount(k,items.length);});card.appendChild(rowi);});
+    cl.appendChild(card);
+  });
+  document.getElementById("clogSec").style.display=any?"":"none";
+  {const ch=document.getElementById("clogHint"),cl2=state.cfg.clogData;if(ch)ch.innerHTML=(cl2&&cl2.cats&&cl2.cats.length)?"Cards show the items you still need per skill, pulled from your loaded collection log.":'Tap an item to mark it logged. <span class="priority">Gold = do first</span>, <span style="color:#4fb6e8">RNG = luck-gated</span>.';}
+  const pv=state.cfg.pvm,pvmSec=document.getElementById("pvmSec");
+  if(pv&&((pv.bosses&&Object.keys(pv.bosses).length)||pv.clog||pv.ehb)){
+    const bs=pv.bosses||{},bk=Object.keys(bs).sort((a,b)=>bs[b]-bs[a]);
+    let body='<div class="pvmbody"><div style="margin-bottom:6px">';
+    if(pv.clog)body+='<span class="stat"><b>'+pv.clog+'</b> log slots</span>';
+    if(pv.ehb)body+='<span class="stat"><b>'+pv.ehb+'</b> EHB</span>';
+    body+='</div>';
+    if(bk.length){body+='<div class="pvm">';bk.forEach(k=>{body+='<div class="kc"><span title="'+esc(bossName(k))+'">'+esc(bossName(k))+'</span><b>'+fmt(bs[k])+'</b></div>';});body+='</div>';}
+    else body+='<p class="hint">No boss kills recorded.</p>';
+    body+='<p class="hint" style="margin-top:10px">Kill counts, log slots &amp; EHB come from Wise Old Man (refreshed on Fetch). Per-item collection log needs the TempleOSRS RuneLite plugin.</p></div>';
+    pvmSec.innerHTML='<details class="pvmsec" open><summary>PvM / boss KC<span class="tag">updated '+esc(pv.updatedStr||"\u2014")+'</span></summary>'+body+'</details>';
+    pvmSec.style.display="";
+  }else{pvmSec.style.display="";pvmSec.innerHTML='<div class="sechead"><h2>PvM / boss KC</h2></div><p class="hint">No boss data yet. Head to <b>Setup</b> and tap <b>Update stats</b> to pull your kill counts, log slots &amp; EHB from Wise Old Man.</p>';}
+  renderGrinds();
+  logCountAll();
+  refresh();
+}
+function methodLabel(k){const m=(state.cfg.method&&state.cfg.method[k]);if(!m)return "";return m==="Custom"?("Custom \u00b7 "+fmt(num(state.cfg.rate[k]))+"/hr"):m;}
+function refresh(){
+  const p=state.plan;if(!p||p.empty)return;
+  const cw=Math.min(Math.max(Math.floor((Date.now()-p.start)/(7*864e5))+1,1),p.totalWeeks);
+  const hpw=p.hpw;const perDay=t=>fmt(t/7),perHr=t=>fmt(t/hpw);
+  const cache={};Object.keys(p.skillWeeks).forEach(k=>cache[k]=calc(k));
+  Object.entries(weekEls).forEach(([wn,ref])=>{wn=+wn;const sc=cache[ref.key];ref.card.classList.remove("done","flex","now");if(wn===cw)ref.card.classList.add("now");
+    if(state.done[wn]){ref.card.classList.add("done");ref.goal.textContent="done";ref.sub.textContent="";ref.brk.textContent="";}
+    else if(sc.rem<=0){ref.card.classList.add("flex");ref.goal.textContent="Maxed";ref.sub.textContent="flex week";ref.brk.textContent="train anything";}
+    else{ref.goal.textContent=fmt(sc.target)+" XP";ref.sub.textContent="this week";ref.brk.textContent=perDay(sc.target)+"/day \u00b7 "+perHr(sc.target)+"/hr";}});
+  document.querySelectorAll(".skill").forEach(card=>{const k=card.dataset.k,sc=cache[k];card.querySelector("[data-wk]").textContent=sc.doneCount+"/"+sc.total+" done";card.querySelector("[data-rem]").textContent=fmt(sc.rem);card.querySelector("[data-tgt]").textContent=sc.rem<=0?"done":(sc.behind?"\u2014":fmt(sc.target));card.querySelector("[data-bar]").style.width=Math.min(100,sc.cur/XP99*100)+"%";const me=card.querySelector("[data-meth]");if(me)me.textContent=methodLabel(k);card.classList.toggle("maxed",sc.rem<=0);});
+  let remTotal=0,maxed=0,nsk=Object.keys(p.skillWeeks).length;Object.keys(p.skillWeeks).forEach(k=>{remTotal+=cache[k].rem;if(cache[k].rem<=0)maxed++;});
+  const pct=p.totalRemXP>0?Math.min(100,(p.totalRemXP-remTotal)/p.totalRemXP*100):100;
+  document.getElementById("heroMeta").classList.remove("hidden");
+  document.getElementById("heroRem").textContent=fmt(remTotal);
+  document.getElementById("heroDone").textContent=maxed+" / "+nsk;
+  document.getElementById("heroFill").style.width=pct+"%";
+  document.getElementById("heroPct").textContent=Math.round(pct)+"% done";
+  document.getElementById("heroHours").textContent="~"+Math.round(p.totalHours)+"h total";
+  document.getElementById("heroTitle").innerHTML=(state.cfg.rsn||"Your")+"'s Road to <em>Max</em>";
+  const goalWord="target "+p.finish;
+  const hpwTxt="~"+(Math.round(p.hpw*10)/10)+"h/week";
+  document.getElementById("heroSub").innerHTML=p.totalWeeks+"-week plan \u00b7 "+hpwTxt+" \u00b7 <b>"+goalWord+"</b>"+(p.warnMsg?' &nbsp;<span style="color:var(--gold-bright)">\u26a0 '+p.warnMsg+'</span>':'');
+  // this week
+  const [cd,ck]=p.weeks[cw-1],csc=cache[ck],cs=SKILLS[ck];
+  const gn=csc.rem<=0?"Maxed":fmt(csc.target);
+  const cwRate=Math.max(1,num(state.cfg.rate[ck])||SKILLS[ck].rate||1);
+  const cwHrs=csc.rem>0?csc.target/cwRate:0;
+  const cwHrsTxt=csc.rem>0?'<div class="lbl" style="margin-top:3px;color:var(--cream)">\u2248 '+(cwHrs>=10?Math.round(cwHrs):cwHrs.toFixed(1))+'h this week</div>':'';
+  const meta=csc.rem<=0?"this skill is done \u2014 train anything":(csc.behind?"no weeks left \u2014 "+fmt(csc.rem)+" to go":methodLabel(ck)+" \u00b7 "+fmt(csc.rem)+" over "+csc.weeksLeft+" wk"+(csc.weeksLeft===1?"":"s"));
+  const tw=document.getElementById("thisweek");tw.style.setProperty("--c",cs.color);
+  tw.innerHTML=icoSpan(ck,34).replace('class="ico"','class="ico" style="color:'+cs.color+'"')+'<div><div class="lbl">This week \u00b7 Week '+cw+' \u00b7 '+cd+'</div><div class="sk">'+cs.name+'</div></div><div style="margin-left:auto;text-align:right"><div class="lbl">Goal</div><div class="goal">'+gn+'</div>'+cwHrsTxt+'</div><div class="meta">'+meta+(p.combatNote&&ck==="slayer"?" \u2014 "+p.combatNote:"")+'</div>';
+}
+function logCount(k,total){const got=Array.from({length:total}).filter((_,i)=>state.log[k+i]).length;const n=document.querySelector('[data-cnt="'+k+'"]');if(n)n.textContent=got+" / "+total+" logged";logCountAll();}
+function logCountAll(){const n=document.getElementById("logcount");if(!n)return;const cd=state.cfg.clogData;if(cd&&cd.finished!=null){n.textContent=cd.finished+(cd.available?" / "+cd.available:"")+" logged";}else{n.textContent=Object.values(state.log).filter(Boolean).length+" logged";}}
+
+function renderAll(){renderSetup();if(state.plan&&!state.plan.empty)renderTracker();else document.getElementById("trackerWrap").classList.add("hidden");}
+
+document.getElementById("reset").addEventListener("click",()=>{if(!confirm("Reset everything (config, plan, progress)?"))return;state={cfg:{},plan:null,done:{},log:{}};wipeStore();location.reload();});
+(function(){const hd=document.getElementById("clogHead"),bd=document.getElementById("clogBody");if(hd&&bd)hd.addEventListener("click",()=>{const closed=bd.style.display==="none";bd.style.display=closed?"":"none";hd.classList.toggle("closed",!closed);});})();
+(function(){const tb=document.getElementById("tabs");if(!tb)return;tb.addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;const t=b.dataset.tab;tb.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));document.querySelectorAll(".tabpanel").forEach(p=>p.classList.toggle("hidden",p.dataset.panel!==t));const tw=document.getElementById("trackerWrap");if(tw&&tw.scrollIntoView)tw.scrollIntoView({behavior:"smooth",block:"start"});});})();
+document.getElementById("export").addEventListener("click",()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);const nm=((state.cfg&&state.cfg.rsn)||"maxcape").replace(/[^a-z0-9_-]+/gi,"_");a.download="maxcape-"+nm+"-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);});
+document.getElementById("import").addEventListener("click",()=>document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change",e=>{const file=e.target.files&&e.target.files[0];if(!file){return;}const r=new FileReader();r.onload=()=>{let obj;try{obj=JSON.parse(r.result);}catch(err){alert("That file isn\u2019t valid JSON.");return;}if(!obj||typeof obj!=="object"||(!obj.cfg&&!obj.plan)){alert("That doesn\u2019t look like a Max Cape backup.");return;}if(!confirm("Import this backup and replace your current data?"))return;state=Object.assign({cfg:{},plan:null,done:{},log:{}},obj);persistNow();location.reload();};r.readAsText(file);e.target.value="";});
+
+(async function(){await load();cfgInit();renderAll();})();
+</script>
+</body>
+</html>
