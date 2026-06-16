@@ -45,6 +45,7 @@
     </section>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="overview">Overview</button>
+      <button class="tab" data-tab="progress">Progress</button>
       <button class="tab" data-tab="weeks">Weekly schedule</button>
       <button class="tab" data-tab="clog">Collection log</button>
       <button class="tab" data-tab="pvm">PvM</button>
@@ -54,6 +55,12 @@
     <section>
       <div class="sechead"><h2>Per-skill plan</h2><span class="tag">edit current XP any time — goals recalc</span></div>
       <div class="grid" id="skillgrid"></div>
+    </section>
+    </div>
+    <div class="tabpanel hidden" data-panel="progress">
+    <section>
+      <div class="sechead"><h2>Progress</h2><span class="tag">tracked on this device</span></div>
+      <div id="progressBody"></div>
     </section>
     </div>
     <div class="tabpanel hidden" data-panel="weeks">

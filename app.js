@@ -1,5 +1,5 @@
 const KEY="maxcape_state_v5";
-let state={cfg:{},plan:null,done:{},log:{}};
+let state={cfg:{},plan:null,done:{},log:{},history:[]};
 let mem=null;
 const LS=(function(){try{localStorage.setItem("__mc_t","1");localStorage.removeItem("__mc_t");return true;}catch(e){return false;}})();
 const WS=(typeof window!=="undefined"&&window.storage&&typeof window.storage.get==="function");
@@ -121,7 +121,7 @@ async function doFetch(rsn,btn){
   const stat=document.getElementById("fetchStat");rsn=(rsn||"").trim();
   if(!rsn){stat.innerHTML='<span style="color:var(--red)">Enter a name first.</span>';return;}
   state.cfg.rsn=rsn;save();btn.disabled=true;const old=btn.textContent;btn.textContent="Fetching\u2026";stat.style.color="";stat.textContent="Looking up "+rsn+" on Wise Old Man\u2026";
-  try{const res=await womFetch(rsn);const had=!!(state.plan&&!state.plan.empty);applyStats(res.skills);applyPvm(res);save();renderAll();const s2=document.getElementById("fetchStat");if(s2)s2.innerHTML='<span style="color:var(--green)">\u2713 '+(had?"Updated XP for "+esc(res.display)+" \u2014 goals recalculated, rotation unchanged.":"Loaded stats for "+esc(res.display)+" \u2014 review, then Generate plan.")+'</span>';}
+  try{const res=await womFetch(rsn);const had=!!(state.plan&&!state.plan.empty);applyStats(res.skills);applyPvm(res);snapshotProgress();save();renderAll();const s2=document.getElementById("fetchStat");if(s2)s2.innerHTML='<span style="color:var(--green)">\u2713 '+(had?"Updated XP for "+esc(res.display)+" \u2014 goals recalculated, rotation unchanged.":"Loaded stats for "+esc(res.display)+" \u2014 review, then Generate plan.")+'</span>';}
   catch(e){btn.disabled=false;btn.textContent=old;stat.innerHTML='<span style="color:var(--red)">'+esc(e&&e.message||"Lookup failed.")+'</span>';}
 }
 
@@ -357,9 +357,82 @@ function refresh(){
 function logCount(k,total){const got=Array.from({length:total}).filter((_,i)=>state.log[k+i]).length;const n=document.querySelector('[data-cnt="'+k+'"]');if(n)n.textContent=got+" / "+total+" logged";logCountAll();}
 function logCountAll(){const n=document.getElementById("logcount");if(!n)return;const cd=state.cfg.clogData;if(cd&&cd.finished!=null){n.textContent=cd.finished+(cd.available?" / "+cd.available:"")+" logged";}else{n.textContent=Object.values(state.log).filter(Boolean).length+" logged";}}
 
-function renderAll(){renderSetup();if(state.plan&&!state.plan.empty)renderTracker();else document.getElementById("trackerWrap").classList.add("hidden");}
+function snapStats(){return {total:ORDER.reduce((a,k)=>a+num(state.cfg.xp[k]),0),rem:ORDER.reduce((a,k)=>a+Math.max(0,XP99-num(state.cfg.xp[k])),0)};}
+function snapshotProgress(){
+  if(!Array.isArray(state.history))state.history=[];
+  const d=isoDate(todayMid()),s=snapStats();
+  const ex=state.history.find(h=>h.date===d);
+  if(ex){ex.total=s.total;ex.rem=s.rem;}else state.history.push({date:d,total:s.total,rem:s.rem});
+  state.history.sort((a,b)=>a.date<b.date?-1:(a.date>b.date?1:0));
+}
+function logTodayClick(){snapshotProgress();persistNow();renderProgress();}
+function progressChart(hist,targetIso){
+  const W=720,H=230,L=54,R=16,T=16,B=30;
+  let minX=Math.min.apply(null,hist.map(h=>Date.parse(h.date)));
+  let maxX=Math.max.apply(null,hist.map(h=>Date.parse(h.date)));
+  const tT=targetIso?Date.parse(targetIso):0; if(tT>maxX)maxX=tT;
+  if(maxX<=minX)maxX=minX+7*864e5;
+  const maxY=Math.max.apply(null,hist.map(h=>h.rem))||1;
+  const px=t=>L+(t-minX)/(maxX-minX)*(W-L-R);
+  const py=v=>T+(1-v/maxY)*(H-T-B);
+  const pts=hist.map(h=>px(Date.parse(h.date)).toFixed(1)+","+py(h.rem).toFixed(1)).join(" ");
+  const dots=hist.map(h=>'<circle cx="'+px(Date.parse(h.date)).toFixed(1)+'" cy="'+py(h.rem).toFixed(1)+'" r="3.2" fill="var(--gold-bright)"/>').join("");
+  let ideal="";
+  if(tT>minX){ideal='<line x1="'+px(minX).toFixed(1)+'" y1="'+py(hist[0].rem).toFixed(1)+'" x2="'+px(tT).toFixed(1)+'" y2="'+py(0).toFixed(1)+'" stroke="var(--gold)" stroke-width="1.3" stroke-dasharray="5 4" opacity=".5"/>';}
+  const fx=t=>{const d=new Date(t);return d.getDate()+" "+MON[d.getMonth()];};
+  return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="inherit">'
+    +'<line x1="'+L+'" y1="'+py(0).toFixed(1)+'" x2="'+(W-R)+'" y2="'+py(0).toFixed(1)+'" stroke="var(--edge)"/>'
+    +'<text x="'+(L-6)+'" y="'+(py(maxY)+4).toFixed(1)+'" text-anchor="end" font-size="11" fill="var(--muted)">'+fmt(maxY)+'</text>'
+    +'<text x="'+(L-6)+'" y="'+(py(0)+4).toFixed(1)+'" text-anchor="end" font-size="11" fill="var(--muted)">0</text>'
+    +'<text x="'+L+'" y="'+(H-8)+'" font-size="11" fill="var(--muted)">'+fx(minX)+'</text>'
+    +'<text x="'+(W-R)+'" y="'+(H-8)+'" text-anchor="end" font-size="11" fill="var(--muted)">'+fx(maxX)+'</text>'
+    +ideal
+    +'<polyline points="'+pts+'" fill="none" stroke="var(--gold-bright)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>'
+    +dots
+    +'<text x="'+L+'" y="11" font-size="10.5" fill="var(--muted)">XP remaining to max cape \u2014 lower is better; dashed = ideal pace</text>'
+    +'</svg>';
+}
+function renderProgress(){
+  const box=document.getElementById("progressBody");if(!box)return;
+  const hist=Array.isArray(state.history)?state.history.slice():[];
+  const live=snapStats();
+  if(hist.length===0){
+    box.innerHTML='<p class="hint">No snapshots yet. Enter your RSN and hit <b>Fetch stats</b> (or use <b>Log today</b> below) \u2014 each one records where you are so you can watch your gains and pace here. Update weekly to keep the chart growing.</p><button class="logbtn" id="logToday">Log today\u2019s progress</button>';
+    const b=document.getElementById("logToday");if(b)b.onclick=logTodayClick;return;
+  }
+  const latest=hist[hist.length-1],remNow=live.rem,ms=864e5,latestT=Date.parse(latest.date);
+  let base=hist[0];
+  for(let i=0;i<hist.length;i++){if(latestT-Date.parse(hist[i].date)<=28*ms){base=hist[i];break;}}
+  let daysSpan=(latestT-Date.parse(base.date))/ms;
+  if(daysSpan<1){base=hist[0];daysSpan=(latestT-Date.parse(base.date))/ms;}
+  const rate=daysSpan>=1?(latest.total-base.total)/(daysSpan/7):null;
+  const prev=hist.length>=2?hist[hist.length-2]:null;
+  const sinceLast=prev?latest.total-prev.total:0;
+  const wTarget=weeksFromDate(state.cfg.date),reqWk=wTarget>0?remNow/wTarget:remNow;
+  let pill,txt;
+  if(remNow<=0){pill="ok";txt="\ud83c\udf89 All 24 skills at 99 \u2014 you\u2019ve maxed! Cape earned.";}
+  else if(rate==null||rate<=0){pill="neutral";txt="Log another snapshot about a week apart to calculate your pace.";}
+  else{const wToMax=remNow/rate,eta=new Date(todayMid().getTime()+wToMax*7*ms);
+    if(rate>=reqWk){const ahead=Math.max(0,wTarget-wToMax);pill="ok";txt="On track \u2014 at "+fmt(rate)+" XP/week you\u2019ll max around "+fmtDate(eta)+(ahead>=1?" (~"+Math.round(ahead)+" wk ahead of target)":" (right on target)")+".";}
+    else{pill="behind";txt="Behind pace \u2014 at "+fmt(rate)+" XP/week you\u2019d max around "+fmtDate(eta)+". You need ~"+fmt(reqWk)+" XP/week to hit your target date.";}
+  }
+  let html='<div class="prow">';
+  html+='<div class="pcard"><div class="lbl">Since last update</div><div class="big gain">'+(prev?(sinceLast>0?"+"+fmt(sinceLast):"\u00b10"):"\u2014")+'</div></div>';
+  html+='<div class="pcard"><div class="lbl">Per week (recent)</div><div class="big">'+(rate!=null&&rate>0?fmt(rate):"\u2014")+'</div></div>';
+  html+='<div class="pcard"><div class="lbl">To max cape</div><div class="big">'+(remNow>0?fmt(remNow):"0")+'</div></div></div>';
+  html+='<div class="statuspill '+pill+'">'+txt+'</div>';
+  if(hist.length>=2)html+='<div class="pchart">'+progressChart(hist,state.cfg.date)+'</div>';
+  else html+='<p class="hint">First snapshot logged on '+fmtDate(new Date(Date.parse(latest.date)))+'. Fetch or log again in about a week to unlock the pace chart.</p>';
+  html+='<details class="snaplist"><summary>\u2630 '+hist.length+' snapshot'+(hist.length===1?"":"s")+' (tap to manage)</summary><div>';
+  for(let i=hist.length-1;i>=0;i--){const h=hist[i];html+='<div class="snaprow"><span class="d">'+fmtDate(new Date(Date.parse(h.date)))+'</span><span class="t">'+fmt(h.total)+' total \u00b7 '+fmt(h.rem)+' to max</span><button class="del" data-i="'+i+'">delete</button></div>';}
+  html+='</div></details><button class="logbtn" id="logToday">Log today\u2019s progress</button>';
+  box.innerHTML=html;
+  const lb=document.getElementById("logToday");if(lb)lb.onclick=logTodayClick;
+  box.querySelectorAll(".snaprow .del").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;state.history.splice(i,1);persistNow();renderProgress();});
+}
+function renderAll(){renderSetup();if(state.plan&&!state.plan.empty){renderTracker();renderProgress();}else document.getElementById("trackerWrap").classList.add("hidden");}
 
-document.getElementById("reset").addEventListener("click",()=>{if(!confirm("Reset everything (config, plan, progress)?"))return;state={cfg:{},plan:null,done:{},log:{}};wipeStore();location.reload();});
+document.getElementById("reset").addEventListener("click",()=>{if(!confirm("Reset everything (config, plan, progress)?"))return;state={cfg:{},plan:null,done:{},log:{},history:[]};wipeStore();location.reload();});
 (function(){const hd=document.getElementById("clogHead"),bd=document.getElementById("clogBody");if(hd&&bd)hd.addEventListener("click",()=>{const closed=bd.style.display==="none";bd.style.display=closed?"":"none";hd.classList.toggle("closed",!closed);});})();
 (function(){const tb=document.getElementById("tabs");if(!tb)return;tb.addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;const t=b.dataset.tab;tb.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));document.querySelectorAll(".tabpanel").forEach(p=>p.classList.toggle("hidden",p.dataset.panel!==t));const tw=document.getElementById("trackerWrap");if(tw&&tw.scrollIntoView)tw.scrollIntoView({behavior:"smooth",block:"start"});});})();
 document.getElementById("export").addEventListener("click",()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);const nm=((state.cfg&&state.cfg.rsn)||"maxcape").replace(/[^a-z0-9_-]+/gi,"_");a.download="maxcape-"+nm+"-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);});
