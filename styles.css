@@ -164,6 +164,7 @@
   .pcard .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
   .pcard .big{font-size:22px;font-weight:700;color:var(--cream);margin-top:3px;font-variant-numeric:tabular-nums}
   .pcard .big.gain{color:var(--green)}
+  .pcard .waiting{font-size:13px;color:var(--muted);font-style:italic;opacity:.85;margin-top:7px}
   .statuspill{border-radius:var(--radius);padding:12px 15px;font-size:14px;font-weight:600;line-height:1.45;margin:0 0 16px;border:1px solid}
   .statuspill.ok{background:rgba(107,208,107,.09);border-color:rgba(107,208,107,.4);color:var(--green)}
   .statuspill.behind{background:rgba(224,107,90,.09);border-color:rgba(224,107,90,.4);color:var(--red)}

@@ -417,8 +417,8 @@ function renderProgress(){
     else{pill="behind";txt="Behind pace \u2014 at "+fmt(rate)+" XP/week you\u2019d max around "+fmtDate(eta)+". You need ~"+fmt(reqWk)+" XP/week to hit your target date.";}
   }
   let html='<div class="prow">';
-  html+='<div class="pcard"><div class="lbl">Since last update</div><div class="big gain">'+(prev?(sinceLast>0?"+"+fmt(sinceLast):"\u00b10"):"\u2014")+'</div></div>';
-  html+='<div class="pcard"><div class="lbl">Per week (recent)</div><div class="big">'+(rate!=null&&rate>0?fmt(rate):"\u2014")+'</div></div>';
+  html+='<div class="pcard"><div class="lbl">Since last update</div>'+(prev?'<div class="big gain">'+(sinceLast>0?"+"+fmt(sinceLast):"\u00b10")+'</div>':'<div class="waiting">after your next update</div>')+'</div>';
+  html+='<div class="pcard"><div class="lbl">Per week (recent)</div>'+(rate!=null&&rate>0?'<div class="big">'+fmt(rate)+'</div>':'<div class="waiting">after a week of data</div>')+'</div>';
   html+='<div class="pcard"><div class="lbl">To max cape</div><div class="big">'+(remNow>0?fmt(remNow):"0")+'</div></div></div>';
   html+='<div class="statuspill '+pill+'">'+txt+'</div>';
   if(hist.length>=2)html+='<div class="pchart">'+progressChart(hist,state.cfg.date)+'</div>';
