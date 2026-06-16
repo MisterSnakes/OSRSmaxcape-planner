@@ -397,7 +397,7 @@ function renderProgress(){
   const hist=Array.isArray(state.history)?state.history.slice():[];
   const live=snapStats();
   if(hist.length===0){
-    box.innerHTML='<p class="hint">No snapshots yet. Enter your RSN and hit <b>Fetch stats</b> (or use <b>Log today</b> below) \u2014 each one records where you are so you can watch your gains and pace here. Update weekly to keep the chart growing.</p><button class="logbtn" id="logToday">Log today\u2019s progress</button>';
+    box.innerHTML='<p class="hint">No snapshots yet. Go to <b>Setup</b> and hit <b>Fetch stats</b> \u2014 that records a snapshot automatically, and each weekly update builds your gains, pace and chart here. Only use the manual button below if you type your XP in by hand.</p><button class="logbtn" id="logToday">Log today manually</button>';
     const b=document.getElementById("logToday");if(b)b.onclick=logTodayClick;return;
   }
   const latest=hist[hist.length-1],remNow=live.rem,ms=864e5,latestT=Date.parse(latest.date);
@@ -425,7 +425,7 @@ function renderProgress(){
   else html+='<p class="hint">First snapshot logged on '+fmtDate(new Date(Date.parse(latest.date)))+'. Fetch or log again in about a week to unlock the pace chart.</p>';
   html+='<details class="snaplist"><summary>\u2630 '+hist.length+' snapshot'+(hist.length===1?"":"s")+' (tap to manage)</summary><div>';
   for(let i=hist.length-1;i>=0;i--){const h=hist[i];html+='<div class="snaprow"><span class="d">'+fmtDate(new Date(Date.parse(h.date)))+'</span><span class="t">'+fmt(h.total)+' total \u00b7 '+fmt(h.rem)+' to max</span><button class="del" data-i="'+i+'">delete</button></div>';}
-  html+='</div></details><button class="logbtn" id="logToday">Log today\u2019s progress</button>';
+  html+='</div></details><div class="loghint">Snapshots save automatically every time you <b>Fetch / Update stats</b> in Setup. Use this only if you enter your XP by hand.</div><button class="logbtn" id="logToday">Log today manually</button>';
   box.innerHTML=html;
   const lb=document.getElementById("logToday");if(lb)lb.onclick=logTodayClick;
   box.querySelectorAll(".snaprow .del").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;state.history.splice(i,1);persistNow();renderProgress();});
