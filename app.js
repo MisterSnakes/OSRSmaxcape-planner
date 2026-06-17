@@ -1,5 +1,6 @@
 const KEY="maxcape_state_v5";
-let state={cfg:{},plan:null,done:{},log:{},history:[]};
+function freshState(){return {cfg:{},plan:null,done:{},log:{},history:[]};}
+let state=freshState();
 let mem=null;
 const LS=(function(){try{localStorage.setItem("__mc_t","1");localStorage.removeItem("__mc_t");return true;}catch(e){return false;}})();
 const WS=(typeof window!=="undefined"&&window.storage&&typeof window.storage.get==="function");
@@ -432,11 +433,11 @@ function renderProgress(){
 }
 function renderAll(){renderSetup();if(state.plan&&!state.plan.empty){renderTracker();renderProgress();}else document.getElementById("trackerWrap").classList.add("hidden");}
 
-document.getElementById("reset").addEventListener("click",()=>{if(!confirm("Reset everything (config, plan, progress)?"))return;state={cfg:{},plan:null,done:{},log:{},history:[]};wipeStore();location.reload();});
+document.getElementById("reset").addEventListener("click",()=>{if(!confirm("Reset everything (config, plan, progress)?"))return;state=freshState();wipeStore();location.reload();});
 (function(){const hd=document.getElementById("clogHead"),bd=document.getElementById("clogBody");if(hd&&bd)hd.addEventListener("click",()=>{const closed=bd.style.display==="none";bd.style.display=closed?"":"none";hd.classList.toggle("closed",!closed);});})();
 (function(){const tb=document.getElementById("tabs");if(!tb)return;tb.addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;const t=b.dataset.tab;tb.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));document.querySelectorAll(".tabpanel").forEach(p=>p.classList.toggle("hidden",p.dataset.panel!==t));const tw=document.getElementById("trackerWrap");if(tw&&tw.scrollIntoView)tw.scrollIntoView({behavior:"smooth",block:"start"});});})();
 document.getElementById("export").addEventListener("click",()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);const nm=((state.cfg&&state.cfg.rsn)||"maxcape").replace(/[^a-z0-9_-]+/gi,"_");a.download="maxcape-"+nm+"-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);});
 document.getElementById("import").addEventListener("click",()=>document.getElementById("importFile").click());
-document.getElementById("importFile").addEventListener("change",e=>{const file=e.target.files&&e.target.files[0];if(!file){return;}const r=new FileReader();r.onload=()=>{let obj;try{obj=JSON.parse(r.result);}catch(err){alert("That file isn\u2019t valid JSON.");return;}if(!obj||typeof obj!=="object"||(!obj.cfg&&!obj.plan)){alert("That doesn\u2019t look like a Max Cape backup.");return;}if(!confirm("Import this backup and replace your current data?"))return;state=Object.assign({cfg:{},plan:null,done:{},log:{}},obj);persistNow();location.reload();};r.readAsText(file);e.target.value="";});
+document.getElementById("importFile").addEventListener("change",e=>{const file=e.target.files&&e.target.files[0];if(!file){return;}const r=new FileReader();r.onload=()=>{let obj;try{obj=JSON.parse(r.result);}catch(err){alert("That file isn\u2019t valid JSON.");return;}if(!obj||typeof obj!=="object"||(!obj.cfg&&!obj.plan)){alert("That doesn\u2019t look like a Max Cape backup.");return;}if(!confirm("Import this backup and replace your current data?"))return;state=Object.assign(freshState(),obj);persistNow();location.reload();};r.readAsText(file);e.target.value="";});
 
 (async function(){await load();cfgInit();renderAll();})();
