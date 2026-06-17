@@ -381,9 +381,9 @@ function refresh(){
   const cwRate=Math.max(1,num(state.cfg.rate[ck])||meta(ck).rate||COMBAT_RATE);
   const cwHrs=csc.rem>0?csc.target/cwRate:0;
   const cwHrsTxt=csc.rem>0?'<div class="lbl" style="margin-top:3px;color:var(--cream)">\u2248 '+(cwHrs>=10?Math.round(cwHrs):cwHrs.toFixed(1))+'h this week</div>':'';
-  const meta=csc.rem<=0?"this skill is done \u2014 train anything":(csc.behind?"no weeks left \u2014 "+fmt(csc.rem)+" to go":methodLabel(ck)+" \u00b7 "+fmt(csc.rem)+" over "+csc.weeksLeft+" wk"+(csc.weeksLeft===1?"":"s"));
+  const metaTxt=csc.rem<=0?"this skill is done \u2014 train anything":(csc.behind?"no weeks left \u2014 "+fmt(csc.rem)+" to go":methodLabel(ck)+" \u00b7 "+fmt(csc.rem)+" over "+csc.weeksLeft+" wk"+(csc.weeksLeft===1?"":"s"));
   const tw=document.getElementById("thisweek");tw.style.setProperty("--c",cs.color);
-  tw.innerHTML=icoSpan(ck,34).replace('class="ico"','class="ico" style="color:'+cs.color+'"')+'<div><div class="lbl">This week \u00b7 Week '+cw+' \u00b7 '+cd+'</div><div class="sk">'+cs.name+'</div></div><div style="margin-left:auto;text-align:right"><div class="lbl">Goal</div><div class="goal">'+gn+'</div>'+cwHrsTxt+'</div><div class="meta">'+meta+(p.combatNote&&(ck==="slayer"||ck==="combat")?" \u2014 "+p.combatNote:"")+'</div>';
+  tw.innerHTML=icoSpan(ck,34).replace('class="ico"','class="ico" style="color:'+cs.color+'"')+'<div><div class="lbl">This week \u00b7 Week '+cw+' \u00b7 '+cd+'</div><div class="sk">'+cs.name+'</div></div><div style="margin-left:auto;text-align:right"><div class="lbl">Goal</div><div class="goal">'+gn+'</div>'+cwHrsTxt+'</div><div class="meta">'+metaTxt+(p.combatNote&&(ck==="slayer"||ck==="combat")?" \u2014 "+p.combatNote:"")+'</div>';
 }
 function logCount(k,total){const got=Array.from({length:total}).filter((_,i)=>state.log[k+i]).length;const n=document.querySelector('[data-cnt="'+k+'"]');if(n)n.textContent=got+" / "+total+" logged";logCountAll();}
 function logCountAll(){const n=document.getElementById("logcount");if(!n)return;const cd=state.cfg.clogData;if(cd&&cd.finished!=null){n.textContent=cd.finished+(cd.available?" / "+cd.available:"")+" logged";}else{n.textContent=Object.values(state.log).filter(Boolean).length+" logged";}}
