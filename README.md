@@ -5,6 +5,8 @@ week-by-week plan to max, with collection-log targets and boss KC pulled from
 Wise Old Man and TempleOSRS. Everything runs in the browser — no account, no
 server, no data leaves your device (it saves to your browser's localStorage).
 
+URL: https://mistersnakes.github.io/OSRSmaxcape-planner/
+
 ## Project layout
 
 | File | What it is |
