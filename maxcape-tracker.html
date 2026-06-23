@@ -194,6 +194,8 @@
   .logbtn{appearance:none;font-family:inherit;font-weight:600;font-size:12.5px;color:var(--gold);background:transparent;border:1px solid var(--edge-bright);border-radius:9px;padding:8px 15px;cursor:pointer}
   .logbtn:hover{color:var(--gold-bright);border-color:var(--gold)}
   .nudge{background:rgba(230,187,70,.12);border:1px solid var(--gold);color:var(--gold-bright);border-radius:var(--radius);padding:10px 14px;font-size:13px;font-weight:600;margin:0 0 12px}
+  .sharepreview{width:100%;max-width:560px;border-radius:var(--radius);border:1px solid var(--edge);display:block;margin:4px 0 10px}
+  .sharebtns{display:flex;gap:8px;flex-wrap:wrap}
   .clog .card .mini{height:6px;background:#0e0b07;border-radius:10px;overflow:hidden;margin:3px 0 2px;border:1px solid var(--edge)}
   .clog .card .mini i{display:block;height:100%;border-radius:10px;transition:width .25s}
   .clog .card .item.extra{display:none}
@@ -842,10 +844,64 @@ function renderProgress(){
   else html+='<p class="hint">First snapshot logged on '+fmtDate(new Date(Date.parse(latest.date)))+'. Fetch or log again in about a week to unlock the pace chart.</p>';
   html+='<details class="snaplist"><summary>\u2630 '+hist.length+' snapshot'+(hist.length===1?"":"s")+' (tap to manage)</summary><div>';
   for(let i=hist.length-1;i>=0;i--){const h=hist[i];html+='<div class="snaprow"><span class="d">'+fmtDate(new Date(Date.parse(h.date)))+'</span><span class="t">'+fmt(h.total)+' total \u00b7 '+fmt(h.rem)+' to max</span><button class="del" data-i="'+i+'">delete</button></div>';}
-  html+='</div></details><div class="loghint">Snapshots save automatically every time you <b>Fetch / Update stats</b> in Setup. Use this only if you enter your XP by hand.</div><button class="logbtn" id="logToday">Log today manually</button>';
+  html+='</div></details><div class="loghint">Snapshots save automatically every time you <b>Fetch / Update stats</b> in Setup. Use this only if you enter your XP by hand.</div><button class="logbtn" id="logToday">Log today manually</button> <button class="logbtn" id="shareBtn">\ud83d\udcf7 Share progress card</button><div id="shareArea" style="display:none;margin-top:12px"></div>';
   box.innerHTML=html;
-  const lb=document.getElementById("logToday");if(lb)lb.onclick=logTodayClick;
+  const lb=document.getElementById("logToday");if(lb)lb.onclick=logTodayClick;const sb=document.getElementById("shareBtn");if(sb)sb.onclick=openShare;
   box.querySelectorAll(".snaprow .del").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;state.history.splice(i,1);persistNow();renderProgress();});
+}
+function paceInfo(){
+  const hist=Array.isArray(state.history)?state.history:[];const remNow=snapStats().rem;
+  if(hist.length<2)return {remNow:remNow,rate:null,hist:hist};
+  const latest=hist[hist.length-1],ms=864e5,latestT=Date.parse(latest.date);
+  let base=hist[0];for(let i=0;i<hist.length;i++){if(latestT-Date.parse(hist[i].date)<=28*ms){base=hist[i];break;}}
+  let span=(latestT-Date.parse(base.date))/ms;if(span<1){base=hist[0];span=(latestT-Date.parse(base.date))/ms;}
+  const rate=span>=1?(latest.total-base.total)/(span/7):null;
+  const wTarget=weeksFromDate(state.cfg.date),reqWk=wTarget>0?remNow/wTarget:remNow;
+  let verdict=null,ok=false;
+  if(remNow<=0){verdict="Goal complete!";ok=true;}
+  else if(rate&&rate>0){const wToMax=remNow/rate;ok=rate>=reqWk;const ahead=Math.max(0,Math.round(wTarget-wToMax));verdict=ok?("On track"+(ahead>=1?" \u00b7 ~"+ahead+" wk ahead":"")):("Behind \u00b7 need "+fmt(reqWk)+"/wk");}
+  return {remNow:remNow,rate:rate,verdict:verdict,ok:ok,hist:hist};
+}
+function rrect(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath();}
+function drawSpark(x,hist,X,Y,W,H){
+  const minX=Math.min.apply(null,hist.map(h=>Date.parse(h.date)));let maxX=Math.max.apply(null,hist.map(h=>Date.parse(h.date)));if(maxX<=minX)maxX=minX+1;
+  const maxY=Math.max.apply(null,hist.map(h=>h.rem))||1;
+  const px=t=>X+(t-minX)/(maxX-minX)*W,py=v=>Y+(1-v/maxY)*H;
+  x.fillStyle="#8a7f6a";x.font="500 18px system-ui,Arial,sans-serif";x.fillText("XP remaining over time",X,Y-10);
+  x.strokeStyle="#e6bb46";x.lineWidth=3;x.lineJoin="round";x.beginPath();hist.forEach((h,i)=>{const xx=px(Date.parse(h.date)),yy=py(h.rem);i?x.lineTo(xx,yy):x.moveTo(xx,yy);});x.stroke();
+  x.fillStyle="#ffd874";hist.forEach(h=>{x.beginPath();x.arc(px(Date.parse(h.date)),py(h.rem),4,0,7);x.fill();});
+}
+function buildShareCanvas(){
+  const c=state.cfg,W=1200,H=630,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
+  const bg=x.createLinearGradient(0,0,W,H);bg.addColorStop(0,"#17130b");bg.addColorStop(1,"#0c0a06");x.fillStyle=bg;x.fillRect(0,0,W,H);
+  x.strokeStyle="#3a3020";x.lineWidth=2;x.strokeRect(14,14,W-28,H-28);
+  x.fillStyle="#e6bb46";x.fillRect(60,72,64,6);
+  x.textBaseline="alphabetic";
+  x.fillStyle="#e6bb46";x.font="600 23px system-ui,Segoe UI,Arial,sans-serif";x.fillText("OSRS MAX CAPE PLANNER",60,120);
+  const g=c.goal||{type:"max"};const big=g.type==="base"?("ROAD TO BASE "+(g.level||80)):(g.type==="custom"?"MY CUSTOM GOALS":"ROAD TO MAX");
+  x.fillStyle="#ffd874";x.font="800 64px system-ui,Segoe UI,Arial,sans-serif";x.fillText(big,58,190);
+  let ny=200;if(c.rsn){x.fillStyle="#8a7f6a";x.font="500 27px system-ui,Segoe UI,Arial,sans-serif";x.fillText("@"+c.rsn,60,ny+26);ny+=30;}
+  x.strokeStyle="#2a241a";x.lineWidth=1;x.beginPath();x.moveTo(60,ny+22);x.lineTo(W-60,ny+22);x.stroke();
+  const pi=paceInfo();
+  const doneCount=ORDER.filter(k=>num(c.xp[k])>=targetLvlXP(k)).length;
+  const goalWord=(g.type==="max")?"99":"GOAL";
+  const stats=[["SKILLS AT "+goalWord,doneCount+" / 24"],["XP TO GO",pi.remNow>0?fmt(pi.remNow):"DONE!"],["PER WEEK",pi.rate&&pi.rate>0?fmt(pi.rate):"\u2014"]];
+  const sy=ny+78,colW=(W-120)/3;
+  stats.forEach((s,i)=>{const cx=60+i*colW;x.fillStyle="#8a7f6a";x.font="600 20px system-ui,Arial,sans-serif";x.fillText(s[0],cx,sy);x.fillStyle="#efe4ce";x.font="800 52px system-ui,Segoe UI,Arial,sans-serif";x.fillText(s[1],cx,sy+56);});
+  let vy=sy+96;
+  if(pi.verdict){x.font="700 26px system-ui,Arial,sans-serif";const tw=x.measureText(pi.verdict).width,pad=22;x.fillStyle=pi.ok?"rgba(107,208,107,.15)":"rgba(224,107,90,.15)";rrect(x,60,vy,tw+pad*2,48,12);x.fill();x.fillStyle=pi.ok?"#6bd06b":"#e06b5a";x.fillText(pi.verdict,60+pad,vy+32);vy+=66;}else{vy+=10;}
+  if(pi.hist&&pi.hist.length>=2)drawSpark(x,pi.hist,60,vy+22,W-120,H-vy-120);
+  x.fillStyle="#8a7f6a";x.font="500 22px system-ui,Arial,sans-serif";x.fillText("mistersnakes.github.io/OSRSmaxcape-planner   \u00b7   ko-fi.com/fanktastc",60,H-44);
+  return cv;
+}
+function openShare(){
+  const wrap=document.getElementById("shareArea");if(!wrap)return;
+  let cv;try{cv=buildShareCanvas();}catch(e){wrap.innerHTML='<p class="hint">Couldn\u2019t build the card.</p>';wrap.style.display="";return;}
+  const url=cv.toDataURL("image/png"),canCopy=!!(navigator.clipboard&&window.ClipboardItem);
+  wrap.innerHTML='<img class="sharepreview" src="'+url+'" alt="Your progress card"/><div class="sharebtns"><button class="logbtn" id="dlCard">Download PNG</button>'+(canCopy?'<button class="logbtn" id="copyCard">Copy image</button>':'')+'</div><p class="loghint">Post it to r/2007scape or your clan Discord \u2014 the card links back to the planner.</p>';
+  wrap.style.display="";
+  document.getElementById("dlCard").onclick=function(){const a=document.createElement("a");a.href=url;a.download="osrs-progress-card.png";document.body.appendChild(a);a.click();a.remove();};
+  if(canCopy){document.getElementById("copyCard").onclick=function(){cv.toBlob(function(b){navigator.clipboard.write([new ClipboardItem({"image/png":b})]).then(function(){const btn=document.getElementById("copyCard");if(btn){btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy image";},1500);}},function(){alert("Copy failed \u2014 use Download instead.");});});};}
 }
 function renderAll(){renderSetup();if(state.plan&&!state.plan.empty){renderTracker();renderProgress();}else document.getElementById("trackerWrap").classList.add("hidden");}
 
