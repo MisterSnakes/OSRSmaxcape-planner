@@ -55,6 +55,17 @@ const METHODS={
  sailing:[["Barracuda Trials",160000],["Sea Charting / courier",110000],["Shipwreck Salvaging (AFK)",80000]],
  combat:[["NMZ (afk)",300000],["NMZ (overloads/flicking)",520000],["Chinning - maniacal monkeys",750000],["Sand crabs / ammonite (afk)",90000]]
 };
+/* Rough gp-per-XP estimates per method; methods not listed are treated as free (gathering / profit). Estimates, not live prices. */
+const COST={
+ "Gilded altar (dragon bones)":11,"Gilded altar (superior bones)":25,"Ensouled heads":5,"Chaos altar (cheaper)":6,
+ "Dragonhide bodies":3,"Battlestaves":2,"Glassblowing":1.5,"Gem cutting":2,
+ "Blast Furnace (gold)":1,"Blast Furnace (addy/rune)":2,"Giants' Foundry":1,
+ "Karambwans (relaxed)":1,"1-tick karambwans":1,"Wines (1t)":0.5,
+ "Super/divine potions":5,"Prayer/Sara brews":4,"Mastering Mixology":1,
+ "Dragon darts":3,"Bow stringing (magic)":1,"Broad arrows":1,"Amethyst bolts (AFK)":1.5,
+ "Tree + fruit-tree runs":0.5,"Hardwood + tree runs":0.5,"Herb runs":0.3,
+ "Mahogany tables":11,"Oak larders (cheap)":1,"Mahogany Homes":1.5
+};
 const DEFAULT_XP={attack:0,strength:0,defence:0,ranged:0,magic:0,hitpoints:1154,prayer:0,runecraft:0,crafting:0,mining:0,smithing:0,fishing:0,cooking:0,firemaking:0,woodcutting:0,agility:0,herblore:0,thieving:0,fletching:0,slayer:0,farming:0,construction:0,hunter:0,sailing:0};
 const IMG={};ORDER.forEach(k=>IMG[k]="https://oldschool.runescape.wiki/images/"+SKILLS[k].name+"_icon.png");
 

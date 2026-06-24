@@ -19,6 +19,10 @@ function skillTarget(k){return k==="combat"?COMBAT5.reduce((a,s)=>a+targetLvlXP(
 function skillRem(k){return Math.max(0,skillTarget(k)-skillCur(k));}
 function goalLabel(){const g=state.cfg.goal||{type:"max"};return g.type==="base"?("base "+(g.level||80)):(g.type==="custom"?"custom targets":"all 99 (max cape)");}
 function markStale(){if(state.plan&&!state.plan.empty){planStale=true;const n=document.getElementById("planNudge");if(n)n.style.display="";}}
+function fmtGp(n){n=Math.round(n);if(n>=1e9)return (n/1e9).toFixed(2).replace(/\.?0+$/,"")+"B";return fmt(n);}
+function costGpXp(k){return (typeof COST!=="undefined"&&state.cfg.method&&COST[state.cfg.method[k]])||0;}
+function costOf(k){return skillRem(k)*costGpXp(k);}
+function planCost(){return SCHED.reduce(function(a,k){return a+costOf(k);},0);}
 
 function el(t,c,h){const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;}
 function fmt(n){n=Math.round(n);if(n>=1e6)return (n/1e6).toFixed(2).replace(/\.?0+$/,'')+'M';if(n>=1e3)return Math.round(n/1e3)+'K';return ''+n;}
@@ -32,7 +36,7 @@ function todayMid(){const d=new Date();d.setHours(0,0,0,0);return d;}
 function isoDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function weeksFromDate(ds){const d=new Date(ds+"T00:00:00");return Math.max(1,Math.floor((d-todayMid())/(7*864e5)));}
 function computeHours(){const c=state.cfg;const hours={};let totalHours=0,totalRemXP=0;SCHED.forEach(k=>{const rem=skillRem(k);if(rem>0){const r=Math.max(1,num(c.rate[k])||SKILLS[k].rate);hours[k]=rem/r;totalHours+=hours[k];totalRemXP+=rem;}});const combatRem=COMBAT5.reduce((a,k)=>a+Math.max(0,targetLvlXP(k)-num(c.xp[k])),0);const cr=Math.max(1,num(c.rate.combat)||COMBAT_RATE);let combatNote;if(combatRem<=0){combatNote="Combat skills are already at goal.";}else if(c.combatViaSlayer===false){hours.combat=combatRem/cr;totalHours+=hours.combat;totalRemXP+=combatRem;combatNote="Combat is its own scheduled block ("+methodLabel("combat")+"), ~"+Math.round(hours.combat)+"h total.";}else{const slayerRem=Math.max(0,targetLvlXP("slayer")-num(c.xp.slayer));const uncovered=Math.max(0,combatRem-slayerRem*4);if(uncovered<=0)combatNote="Combat (~"+fmt(combatRem)+" XP) rides along with Slayer (~"+fmt(slayerRem*4)+" combat XP from your "+fmt(slayerRem)+" Slayer XP).";else{const eh=uncovered/cr;if(hours.slayer==null){hours.slayer=0;totalRemXP+=Math.max(0,skillRem("slayer"));}hours.slayer+=eh;totalHours+=eh;combatNote="Slayer covers most combat; ~"+fmt(uncovered)+" XP needs dedicated combat, folded into Slayer (~"+Math.round(eh)+"h).";}}return {hours,totalHours,totalRemXP,combatNote};}
-function updateSum(th,w,hpw){const e=document.getElementById("liveSum");if(e)e.innerHTML="\u2248 "+Math.round(th)+"h total \u00b7 "+w+" weeks \u00b7 ~"+(Math.round(hpw*10)/10)+"h/week"+(hpw>40?' <span style="color:var(--red)">(heavy \u2014 push the date back)</span>':"");}
+function updateSum(th,w,hpw){const e=document.getElementById("liveSum");if(!e)return;const pc=planCost();e.innerHTML="\u2248 "+Math.round(th)+"h total \u00b7 "+w+" weeks \u00b7 ~"+(Math.round(hpw*10)/10)+"h/week"+(pc>0?" \u00b7 \u2248"+fmtGp(pc)+" gp":"")+(hpw>40?' <span style="color:var(--red)">(heavy \u2014 push the date back)</span>':"");}
 function syncFromDate(){const {totalHours}=computeHours();const w=weeksFromDate(state.cfg.date);const hpw=totalHours/w;state.cfg.hpw=Math.round(hpw*10)/10;const hi=document.getElementById("hpwInput");if(hi&&document.activeElement!==hi)hi.value=state.cfg.hpw;updateSum(totalHours,w,hpw);}
 function syncFromHpw(val){const hpw=Math.max(1,num(val)||1);const {totalHours}=computeHours();const w=Math.max(1,Math.ceil(totalHours/hpw));const d=new Date(todayMid().getTime()+w*7*864e5);state.cfg.date=isoDate(d);state.cfg.hpw=hpw;const di=document.getElementById("dateInput");if(di&&document.activeElement!==di)di.value=state.cfg.date;updateSum(totalHours,w,hpw);}
 async function womFetch(rsn){
@@ -295,7 +299,7 @@ function renderTracker(){
     c.innerHTML='<div class="row1">'+icoSpan(k,20)+'<span class="sname">'+s.name+'</span><span class="wk" data-wk></span></div>'
       +'<div class="smeth" data-meth></div>'
       +'<input class="cur" type="text" inputmode="numeric">'
-      +'<div class="nums"><span class="b">left <b data-rem></b></span><span class="b">need/wk <b data-tgt></b></span></div>'
+      +'<div class="nums"><span class="b">left <b data-rem></b></span><span class="b">need/wk <b data-tgt></b></span><span class="b">cost <b data-cost></b></span></div>'
       +'<div class="mini"><i data-bar style="width:0%"></i></div>';
     const inp=c.querySelector("input");inp.value=state.cfg.xp[k];
     inp.addEventListener("input",()=>{state.cfg.xp[k]=num(inp.value);save();refresh();});
@@ -362,7 +366,7 @@ function refresh(){
     if(state.done[wn]){ref.card.classList.add("done");ref.goal.textContent="done";ref.sub.textContent="";ref.brk.textContent="";}
     else if(sc.rem<=0){ref.card.classList.add("flex");ref.goal.textContent="Maxed";ref.sub.textContent="flex week";ref.brk.textContent="train anything";}
     else{ref.goal.textContent=fmt(sc.target)+" XP";ref.sub.textContent="this week";ref.brk.textContent=perDay(sc.target)+"/day \u00b7 "+perHr(sc.target)+"/hr";}});
-  document.querySelectorAll(".skill").forEach(card=>{const k=card.dataset.k,sc=cache[k];card.querySelector("[data-wk]").textContent=sc.doneCount+"/"+sc.total+" done";card.querySelector("[data-rem]").textContent=fmt(sc.rem);card.querySelector("[data-tgt]").textContent=sc.rem<=0?"done":(sc.behind?"\u2014":fmt(sc.target));card.querySelector("[data-bar]").style.width=Math.min(100,sc.cur/skillTarget(k)*100)+"%";const me=card.querySelector("[data-meth]");if(me)me.textContent=methodLabel(k);card.classList.toggle("maxed",sc.rem<=0);});
+  document.querySelectorAll(".skill").forEach(card=>{const k=card.dataset.k,sc=cache[k];card.querySelector("[data-wk]").textContent=sc.doneCount+"/"+sc.total+" done";card.querySelector("[data-rem]").textContent=fmt(sc.rem);card.querySelector("[data-tgt]").textContent=sc.rem<=0?"done":(sc.behind?"\u2014":fmt(sc.target));card.querySelector("[data-bar]").style.width=Math.min(100,sc.cur/skillTarget(k)*100)+"%";const me=card.querySelector("[data-meth]");if(me)me.textContent=methodLabel(k);const ce=card.querySelector("[data-cost]");if(ce){const cgx=costGpXp(k);ce.textContent=sc.rem<=0?"\u2014":(cgx>0?"\u2248"+fmtGp(sc.rem*cgx):"free");}card.classList.toggle("maxed",sc.rem<=0);});
   let remTotal=0,maxed=0,nsk=Object.keys(p.skillWeeks).length;Object.keys(p.skillWeeks).forEach(k=>{remTotal+=cache[k].rem;if(cache[k].rem<=0)maxed++;});
   const pct=p.totalRemXP>0?Math.min(100,(p.totalRemXP-remTotal)/p.totalRemXP*100):100;
   document.getElementById("heroMeta").classList.remove("hidden");
